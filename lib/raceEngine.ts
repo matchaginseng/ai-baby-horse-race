@@ -50,8 +50,7 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
   slipping: boolean;
   slipFrames: number;
-  career: Career | null;   // null = still on the ladder
-  fallingOff: boolean;     // true while sliding to the bottom after a career change
+  career: Career | null;   // null = still on the ladder; set = frozen in place
 }
 
 const BASE_SPEED    = 1.0;
@@ -60,7 +59,6 @@ const SLIP_CHANCE   = 0.0018;
 const SLIP_FRAMES   = 50;
 const SLIP_SPEED    = 2.5;
 const CAREER_CHANCE = 0.0006; // ~1 career change per baby per 28 s; ~8-12 per 60 s race across 14 babies
-const FALL_SPEED    = 200;     // engine px/tick — rapid slide to bottom (~0.3-0.6 s)
 
 function seededRand(seed: number) {
   let s = seed;
@@ -121,7 +119,6 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
       slipping: false,
       slipFrames: 0,
       career: null,
-      fallingOff: false,
     };
   });
 }
@@ -135,8 +132,8 @@ export function tickPlayers(
   const raceProgress = elapsed / RACE_DURATION_MS;
 
   return states.map((state) => {
-    // Frozen at the bottom after a career change
-    if (state.career !== null && !state.fallingOff) return state;
+    // Frozen in place after a career change
+    if (state.career !== null) return state;
 
     if (state.finished) return state;
 
@@ -165,18 +162,17 @@ export function tickPlayers(
     const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
 
     // Career-change mechanic — AI immune; higher luck = less likely
-    let { career, fallingOff } = state;
-    if (!cfg.isAI && !fallingOff && career === null) {
+    if (!cfg.isAI && state.career === null) {
       const careerProb = CAREER_CHANCE * (1 - (stats.luck / 10) * 0.6);
       if (Math.random() < careerProb) {
-        career = CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)];
-        fallingOff = true;
+        const career = CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)];
+        return { ...state, career };
       }
     }
 
     // Slip mechanic — AI never slips; higher luck = less frequent slips
     let { slipping, slipFrames } = state;
-    if (!cfg.isAI && !fallingOff) {
+    if (!cfg.isAI) {
       if (slipping) {
         slipFrames = Math.max(0, slipFrames - 1);
         if (slipFrames === 0) slipping = false;
@@ -191,11 +187,7 @@ export function tickPlayers(
 
     let { segIndex, segProgress, x, y } = state;
 
-    if (fallingOff) {
-      // Rapid fall to the bottom — dramatically fast
-      y = Math.max(0, y - FALL_SPEED * (TICK_MS / 16));
-      if (y <= 0) fallingOff = false; // landed
-    } else if (slipping) {
+    if (slipping) {
       // Slide backward on the ladder
       y = Math.max(0, y - SLIP_SPEED * (TICK_MS / 16));
     } else {
@@ -229,7 +221,7 @@ export function tickPlayers(
     }
     }
 
-    const finished = !slipping && !fallingOff && career === null && (y >= FINISH_Y || segIndex >= state.segments.length);
+    const finished = !slipping && (y >= FINISH_Y || segIndex >= state.segments.length);
 
     // Keep a short trail for rendering
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
@@ -247,8 +239,6 @@ export function tickPlayers(
       trail,
       slipping,
       slipFrames,
-      career,
-      fallingOff,
     };
   });
 }

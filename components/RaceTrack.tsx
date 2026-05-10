@@ -167,6 +167,9 @@ export default function RaceTrack() {
   const z0y = Math.round(zoneYs[0].y);
   const z1y = Math.round(zoneYs[1].y);
   const z2y = Math.round(zoneYs[2].y);
+  // Hell zone below the working class threshold
+  const hellMid = Math.round(z2y + (trackH - z2y) * 0.45);
+  const hellHot = Math.round(z2y + (trackH - z2y) * 0.78);
   const laneBg = `linear-gradient(to bottom,
     #87ceeb 0px,
     #5aa8d8 ${SKY_H}px,
@@ -174,7 +177,10 @@ export default function RaceTrack() {
     #0d1a2e ${z0y}px,
     #111122 ${z1y}px,
     #0c0c18 ${z2y}px,
-    #070710 ${trackH}px
+    #2a0404 ${hellMid}px,
+    #7a1200 ${hellHot}px,
+    #c84000 ${trackH - 12}px,
+    #ff6600 ${trackH}px
   )`;
 
 
@@ -212,15 +218,12 @@ export default function RaceTrack() {
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: HEADER_H, zIndex: 40, background: "rgba(5,5,16,0.97)", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "stretch" }}>
             {PLAYERS.map((cfg) => {
               const state    = playerStates.find(s => s.id === cfg.id);
-              const progress = state ? getProgress(state) : 0;
-              const nw       = calcNetWorth(progress, cfg.stats.speed);
               const placeIdx = finishOrder.indexOf(cfg.id);
               return (
                 <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.05)", gap: 1, overflow: "hidden" }}>
-                  <span style={{ color: cfg.color, fontSize: 8, fontWeight: "bold", lineHeight: 1 }}>
-                    {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{cfg.name.slice(0, 5)}
+                  <span style={{ color: state?.career ? "rgba(255,255,255,0.35)" : cfg.color, fontSize: 8, fontWeight: "bold", lineHeight: 1 }}>
+                    {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{state?.career ? state.career.emoji : cfg.name.slice(0, 5)}
                   </span>
-                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", lineHeight: 1 }}>{fmtMoney(nw)}</span>
                 </div>
               );
             })}
@@ -267,24 +270,20 @@ export default function RaceTrack() {
 
                     {/* Baby token */}
                     {state && (() => {
-                      const isFallen  = state.career !== null && !state.fallingOff;
-                      const isFalling = state.fallingOff;
-                      // Fallen babies pin to the bottom of the lane
-                      const tokenTop = isFallen
-                        ? trackH - BOTTOM_H - BABY_SIZE - 2
-                        : sy - BABY_SIZE / 2;
+                      const hasCareer = state.career !== null;
+                      const nw = calcNetWorth(getProgress(state), cfg.stats.speed);
 
                       return (
                         <div style={{
                           position: "absolute",
-                          top: tokenTop,
+                          top: sy - BABY_SIZE / 2,
                           left: "50%",
                           transform: "translateX(-50%)",
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "center",
                           zIndex: 6,
-                          opacity: isFallen ? 0.75 : 1,
+                          opacity: hasCareer ? 0.7 : 1,
                           transition: "opacity 0.4s",
                         }}>
                           {/* Circle token */}
@@ -292,32 +291,34 @@ export default function RaceTrack() {
                             width: BABY_SIZE,
                             height: BABY_SIZE,
                             borderRadius: "50%",
-                            background: isFallen ? "#1a1a1a" : "#10101e",
-                            border: `2.5px solid ${isFallen ? "rgba(255,255,255,0.2)" : cfg.color}`,
+                            background: hasCareer ? "#1a1a1a" : "#10101e",
+                            border: `2.5px solid ${hasCareer ? "rgba(255,255,255,0.2)" : cfg.color}`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: isFallen || isFalling ? 16 : 8,
+                            fontSize: hasCareer ? 16 : 8,
                             color: cfg.isAI ? "#fff" : cfg.color,
                             fontWeight: "bold",
-                            boxShadow: isFalling
-                              ? "0 0 14px #ef444490"
-                              : state.slipping
-                                ? "0 0 10px #ef444490"
-                                : state.luckBoost > 1
-                                  ? `0 0 14px ${cfg.color}99`
-                                  : undefined,
+                            boxShadow: state.slipping
+                              ? "0 0 10px #ef444490"
+                              : state.luckBoost > 1
+                                ? `0 0 14px ${cfg.color}99`
+                                : undefined,
                             transition: "box-shadow 0.15s",
                           }}>
-                            {isFallen || isFalling
+                            {hasCareer
                               ? state.career!.emoji
                               : state.slipping
                                 ? "😱"
                                 : cfg.name.slice(0, 3)}
                           </div>
-                          {/* Career label (shown when landed) */}
-                          {isFallen && (
-                            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.4)", marginTop: 2, whiteSpace: "nowrap" }}>
+                          {/* Net worth — follows the baby, drops when slipping */}
+                          <span style={{ fontSize: 7, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.45)", marginTop: 2, whiteSpace: "nowrap" }}>
+                            {fmtMoney(nw)}
+                          </span>
+                          {/* Career label */}
+                          {hasCareer && (
+                            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>
                               {state.career!.name}
                             </span>
                           )}
