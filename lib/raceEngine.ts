@@ -35,7 +35,7 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
 }
 
-const BASE_SPEED = 1.5;
+const BASE_SPEED = 0.85;
 const TICK_MS = 16;
 
 function seededRand(seed: number) {
@@ -46,7 +46,7 @@ function seededRand(seed: number) {
   };
 }
 
-function buildSegments(stats: PlayerStats, rand: () => number, isAI: boolean): Segment[] {
+function buildSegments(stats: PlayerStats, rand: () => number): Segment[] {
   const segments: Segment[] = [];
   let currentY = 0;
 
@@ -70,11 +70,6 @@ function buildSegments(stats: PlayerStats, rand: () => number, isAI: boolean): S
     }
   }
 
-  // Ensure AI path is always slightly shorter total length
-  if (isAI) {
-    return segments.map(s => ({ dx: s.dx * 0.6, dy: s.dy }));
-  }
-
   return segments;
 }
 
@@ -83,7 +78,7 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
 
   return configs.map((cfg, i) => {
     const rand = seededRand(i * 9999 + 1);
-    const segments = buildSegments(cfg.stats, rand, cfg.isAI);
+    const segments = buildSegments(cfg.stats, rand);
     const effectiveSpeed = (cfg.stats.speed / 10) * BASE_SPEED * 2 + BASE_SPEED;
 
     return {
@@ -136,16 +131,7 @@ export function tickPlayers(
       }
     }
 
-    // AI guarantee: if any non-AI player is ahead, apply a catch-up boost
-    let aiBoost = 1;
-    if (cfg.isAI && finishOrder.length === 0) {
-      const maxOtherY = Math.max(...states.filter(s => !configs.find(c => c.id === s.id)!.isAI).map(s => s.y));
-      if (maxOtherY > state.y) {
-        aiBoost = 1.4;
-      }
-    }
-
-    const effectiveSpeed = state.speed * staminaFactor * luckBoost * aiBoost * (TICK_MS / 16);
+    const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
 
     let { segIndex, segProgress, x, y } = state;
     let remaining = effectiveSpeed;
