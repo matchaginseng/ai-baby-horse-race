@@ -4,6 +4,8 @@ export const FIELD_WIDTH = 1200;
 export const FIELD_HEIGHT = 8000;
 export const FINISH_Y = FIELD_HEIGHT - 100;
 export const PLAYER_SIZE = 48;
+export const RACE_DURATION_MS = 60_000;
+export const RACE_YEARS = 80;
 
 export const MILESTONES: { y: number; label: string }[] = [
   { y: Math.floor(FIELD_HEIGHT * 0.25), label: "Stage 1" },
