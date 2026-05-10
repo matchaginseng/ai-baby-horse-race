@@ -22,9 +22,9 @@ const BABY_SIZE = 34;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
-  { progress: 0.85, label: "Upper Middle Class", color: "#93c5fd" },
-  { progress: 0.60, label: "Middle Class",       color: "#9ca3af" },
-  { progress: 0.30, label: "Working Class",      color: "#6b7280" },
+  { progress: 0.78, label: "Has Strong Opinions About Wine", color: "#93c5fd" },
+  { progress: 0.52, label: "LinkedIn Thought Leader",         color: "#9ca3af" },
+  { progress: 0.26, label: "Ramen Budget, Champagne Dreams",  color: "#6b7280" },
 ] as const;
 
 const PODIUM_COLORS = ["#fbbf24", "#94a3b8", "#cd7c3e"] as const;
@@ -36,10 +36,10 @@ function getProgress(s: PlayerState): number {
 }
 
 function classLabel(p: number): string {
-  if (p >= 0.85) return "Upper Middle";
-  if (p >= 0.60) return "Middle Class";
-  if (p >= 0.30) return "Working Class";
-  return "Born";
+  if (p >= 0.78) return "Wine Opinions";
+  if (p >= 0.52) return "LinkedIn Era";
+  if (p >= 0.26) return "Ramen Dreams";
+  return "Permanent Underclass";
 }
 
 // Maps baby progress (0→1) to a Y pixel position in the track container.
@@ -328,7 +328,7 @@ export default function RaceTrack() {
                           </span>
                           {/* Career label */}
                           {hasCareer && (
-                            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>
+                            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
                               {state.career!.name}
                             </span>
                           )}
@@ -343,9 +343,9 @@ export default function RaceTrack() {
             {/* Finish line (spans all lanes) */}
             <div style={{ position: "absolute", top: SKY_H - 1, left: 0, right: 0, height: 3, background: "#fbbf24", boxShadow: "0 0 12px #fbbf2480", zIndex: 15, pointerEvents: "none" }} />
 
-            {/* UPPER CLASS label */}
+            {/* NOT RULING CLASS label */}
             <div style={{ position: "absolute", top: SKY_H - 22, left: 0, right: 0, textAlign: "center", fontSize: 11, fontWeight: "bold", color: "white", textShadow: "0 1px 6px rgba(0,0,0,0.4)", zIndex: 16, pointerEvents: "none" }}>
-              ☁️ &nbsp; UPPER CLASS &nbsp; ☁️
+              ☁️ &nbsp; RULING CLASS &nbsp; ☁️
             </div>
 
             {/* Clouds (sky zone overlay, spans all lanes) */}
@@ -386,7 +386,7 @@ export default function RaceTrack() {
             <div style={{ fontSize: 26, fontWeight: "bold", color: "white", marginBottom: 28 }}>Race Over</div>
 
             <div style={{ marginBottom: 24, textAlign: "left" }}>
-              <div style={{ fontSize: 9, color: "#4ade80", letterSpacing: "0.18em", marginBottom: 10 }}>✓ ESCAPED TO UPPER CLASS</div>
+              <div style={{ fontSize: 9, color: "#4ade80", letterSpacing: "0.18em", marginBottom: 10 }}>✓ ESCAPED THE PERMANENT UNDERCLASS</div>
               {finishOrder.length === 0 ? (
                 <div style={{ color: "rgba(255,255,255,0.25)", fontSize: 13, textAlign: "center", padding: "12px 0" }}>Nobody made it out.</div>
               ) : (
