@@ -14,13 +14,16 @@ import { PLAYERS } from "@/lib/players";
 type Phase = "lobby" | "racing" | "finished";
 
 // ── Display world ──────────────────────────────────────────────────────────
-const WORLD_HEIGHT = 5000;
-const FINISH_WORLD_Y = 90;     // px from top of world where finish line sits
-const START_WORLD_Y = WORLD_HEIGHT - 80;
-const BABY_SIZE = 36;
-const HEADER_H = 50;
+const WORLD_HEIGHT  = 5000;
+const FINISH_WORLD_Y = 90;
+const START_WORLD_Y  = WORLD_HEIGHT - 80;
+const BABY_SIZE  = 36;
+const HEADER_H   = 50;
+const MINI_H     = 130;   // minimap panel height
+const MINI_TRACK = 78;    // track area within minimap
+const MINI_DOT   = 9;     // baby dot diameter in minimap
 
-// Class zone thresholds (progress 0→1 maps start→finish)
+// Class zone thresholds
 const ZONES = [
   { progress: 0.85, label: "Upper Middle Class", color: "#93c5fd" },
   { progress: 0.60, label: "Middle Class",       color: "#9ca3af" },
@@ -32,8 +35,6 @@ const MEDALS        = ["🥇", "🥈", "🥉"] as const;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function progressToWorldY(progress: number): number {
-  // progress 0 = bottom (start), 1 = top (finish)
-  // worldY 0 = top of world, WORLD_HEIGHT = bottom
   return FINISH_WORLD_Y + (1 - progress) * (START_WORLD_Y - FINISH_WORLD_Y);
 }
 
@@ -48,16 +49,27 @@ function classLabel(p: number): string {
   return "Born";
 }
 
-// Pre-compute zone worldY positions (constant across renders)
+// Net worth formula (TODO: refine with real compounding/career logic)
+function calcNetWorth(progress: number, speed: number): number {
+  return Math.round(progress * progress * 2_000_000 * (0.5 + speed / 20));
+}
+
+function fmtMoney(n: number): string {
+  if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return "$" + Math.round(n / 1_000) + "k";
+  return "$" + n;
+}
+
+// Pre-computed zone worldY values
 const zoneWorldYs = ZONES.map(z => ({
   ...z,
   worldY: Math.round(progressToWorldY(z.progress)),
 }));
 
-// Lane gradient: sky at top fading to underground
-const upperY  = zoneWorldYs[0].worldY; // ~800
-const middleY = zoneWorldYs[1].worldY; // ~1960
-const workingY = zoneWorldYs[2].worldY; // ~3360
+const upperY   = zoneWorldYs[0].worldY;
+const middleY  = zoneWorldYs[1].worldY;
+const workingY = zoneWorldYs[2].worldY;
+
 const LANE_BG = `linear-gradient(to bottom,
   #87ceeb 0px,
   #4a90d9 ${FINISH_WORLD_Y}px,
@@ -66,6 +78,20 @@ const LANE_BG = `linear-gradient(to bottom,
   #111122 ${middleY}px,
   #0c0c18 ${workingY}px,
   #070710 ${START_WORLD_Y}px
+)`;
+
+// Minimap gradient (compressed version of lane gradient over MINI_TRACK height)
+const mu = Math.round(upperY   / WORLD_HEIGHT * MINI_TRACK);
+const mm = Math.round(middleY  / WORLD_HEIGHT * MINI_TRACK);
+const mw = Math.round(workingY / WORLD_HEIGHT * MINI_TRACK);
+const mf = Math.round(FINISH_WORLD_Y / WORLD_HEIGHT * MINI_TRACK);
+const MINI_BG = `linear-gradient(to bottom,
+  #87ceeb 0px,
+  #4a90d9 ${mf}px,
+  #0d1a2e ${mu}px,
+  #111122 ${mm}px,
+  #0c0c18 ${mw}px,
+  #070710 ${MINI_TRACK}px
 )`;
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -78,10 +104,10 @@ export default function RaceTrack() {
   const [vpHeight, setVpHeight]         = useState(800);
   const [winnerFlash, setWinnerFlash]   = useState<{ id: string; place: number } | null>(null);
 
-  const animRef       = useRef<number | null>(null);
-  const lastTimeRef   = useRef<number | null>(null);
-  const elapsedRef    = useRef(0);
-  const statesRef     = useRef<PlayerState[]>([]);
+  const animRef        = useRef<number | null>(null);
+  const lastTimeRef    = useRef<number | null>(null);
+  const elapsedRef     = useRef(0);
+  const statesRef      = useRef<PlayerState[]>([]);
   const finishOrderRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -107,7 +133,6 @@ export default function RaceTrack() {
       finishOrderRef.current,
     );
 
-    // Collect new finishers in this tick
     const newFinishers = nextStates
       .filter(s => s.finished && !finishOrderRef.current.includes(s.id))
       .sort((a, b) => (a.finishTime ?? 0) - (b.finishTime ?? 0));
@@ -125,15 +150,15 @@ export default function RaceTrack() {
     statesRef.current = nextStates;
     setPlayerStates([...nextStates]);
 
-    // Camera: keep leader at ~65% from top of container
+    // Camera: keep leader at ~65% from top of the main (non-mini) area
     const leader = nextStates.reduce(
       (best, s) => getProgress(s) > getProgress(best) ? s : best,
       nextStates[0],
     );
+    const mainH         = window.innerHeight - HEADER_H - MINI_H;
     const leaderWorldY  = progressToWorldY(getProgress(leader));
-    const containerH    = window.innerHeight - HEADER_H;
-    const targetOffset  = leaderWorldY - containerH * 0.65;
-    const clampedOffset = Math.max(0, Math.min(WORLD_HEIGHT - containerH, targetOffset));
+    const targetOffset  = leaderWorldY - mainH * 0.65;
+    const clampedOffset = Math.max(0, Math.min(WORLD_HEIGHT - mainH, targetOffset));
     setCameraOffset(clampedOffset);
 
     if (remaining === 0 || nextStates.every(s => s.finished)) {
@@ -147,10 +172,10 @@ export default function RaceTrack() {
   const startRace = useCallback(() => {
     if (animRef.current) cancelAnimationFrame(animRef.current);
     const states = initPlayers(PLAYERS);
-    statesRef.current    = states;
+    statesRef.current     = states;
     finishOrderRef.current = [];
-    elapsedRef.current   = 0;
-    lastTimeRef.current  = null;
+    elapsedRef.current    = 0;
+    lastTimeRef.current   = null;
     setPlayerStates(states);
     setFinishOrder([]);
     setTimeLeftMs(RACE_DURATION_MS);
@@ -165,9 +190,13 @@ export default function RaceTrack() {
 
   const timeLeftSec  = Math.ceil(timeLeftMs / 1000);
   const yearsElapsed = Math.round((1 - timeLeftMs / RACE_DURATION_MS) * RACE_YEARS);
-  const containerH   = vpHeight - HEADER_H;
-  const N            = PLAYERS.length;
-  const lanePct      = 100 / N;
+  const mainContainerH = vpHeight - HEADER_H - MINI_H;
+  const N = PLAYERS.length;
+  const lanePct = 100 / N;
+
+  // Minimap viewport band positions
+  const vBandTop    = Math.round((cameraOffset / WORLD_HEIGHT) * MINI_TRACK);
+  const vBandHeight = Math.max(4, Math.round((mainContainerH / WORLD_HEIGHT) * MINI_TRACK));
 
   return (
     <div style={{ height: "100vh", overflow: "hidden", background: "#050510", position: "relative", userSelect: "none", fontFamily: "monospace" }}>
@@ -180,7 +209,6 @@ export default function RaceTrack() {
             {N} babies. {RACE_YEARS} years. One ladder out of the underclass.
             <br />Who escapes before time runs out?
           </p>
-
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, maxWidth: 480 }}>
             {PLAYERS.map(p => (
               <div key={p.id} style={{ borderRadius: 12, padding: "10px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
@@ -191,7 +219,6 @@ export default function RaceTrack() {
               </div>
             ))}
           </div>
-
           <button
             onClick={startRace}
             style={{ padding: "16px 52px", background: "white", color: "black", fontWeight: "bold", fontSize: 16, borderRadius: 16, border: "none", cursor: "pointer" }}
@@ -204,22 +231,27 @@ export default function RaceTrack() {
       {/* ── RACE ──────────────────────────────────────────────────────────── */}
       {phase !== "lobby" && (
         <>
-          {/* Fixed header: lane labels + countdown clock */}
+          {/* Fixed header: lane labels + net worth + countdown */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: HEADER_H, zIndex: 40, background: "rgba(5,5,16,0.96)", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "stretch" }}>
-            {PLAYERS.map((cfg, i) => (
-              <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.05)", gap: 2 }}>
-                <span style={{ color: cfg.color, fontSize: 8, fontWeight: "bold", lineHeight: 1 }}>
-                  {cfg.name.slice(0, 5)}
-                </span>
-                {finishOrder.includes(cfg.id) && (
-                  <span style={{ fontSize: 7, color: PODIUM_COLORS[Math.min(finishOrder.indexOf(cfg.id), 2)] ?? "#4ade80" }}>
-                    #{finishOrder.indexOf(cfg.id) + 1}
-                  </span>
-                )}
-              </div>
-            ))}
+            {PLAYERS.map((cfg) => {
+              const state    = playerStates.find(s => s.id === cfg.id);
+              const progress = state ? getProgress(state) : 0;
+              const nw       = calcNetWorth(progress, cfg.stats.speed);
+              const placeIdx = finishOrder.indexOf(cfg.id);
 
-            {/* Countdown clock — centered, floats above lane headers */}
+              return (
+                <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.05)", gap: 1, overflow: "hidden" }}>
+                  <span style={{ color: cfg.color, fontSize: 8, fontWeight: "bold", lineHeight: 1 }}>
+                    {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{cfg.name.slice(0, 5)}
+                  </span>
+                  <span style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", lineHeight: 1 }}>
+                    {fmtMoney(nw)}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Countdown clock — centered */}
             <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", background: "rgba(0,0,0,0.75)", borderRadius: 8, padding: "4px 14px", border: "1px solid rgba(255,255,255,0.13)", textAlign: "center", minWidth: 72, zIndex: 5 }}>
               <div style={{ fontSize: 20, fontWeight: "bold", color: timeLeftSec <= 10 ? "#ef4444" : timeLeftSec <= 20 ? "#fbbf24" : "#ffffff", lineHeight: 1 }}>
                 {timeLeftSec}s
@@ -230,13 +262,10 @@ export default function RaceTrack() {
             </div>
           </div>
 
-          {/* Race container */}
-          <div style={{ position: "absolute", top: HEADER_H, left: 0, right: 0, bottom: 0, overflow: "hidden" }}>
-
+          {/* Main race area (shrunk to leave room for minimap) */}
+          <div style={{ position: "absolute", top: HEADER_H, left: 0, right: 0, bottom: MINI_H, overflow: "hidden" }}>
             {/* Translated world */}
             <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: WORLD_HEIGHT, transform: `translateY(${-cameraOffset}px)`, display: "flex" }}>
-
-              {/* Lane columns */}
               {PLAYERS.map((cfg, i) => {
                 const state    = playerStates.find(s => s.id === cfg.id);
                 const progress = state ? getProgress(state) : 0;
@@ -244,8 +273,7 @@ export default function RaceTrack() {
 
                 return (
                   <div key={cfg.id} style={{ flex: 1, position: "relative", height: WORLD_HEIGHT, borderRight: "1px solid rgba(255,255,255,0.05)", background: LANE_BG, overflow: "hidden" }}>
-
-                    {/* "UPPER CLASS" sky label — fixed at finish zone */}
+                    {/* "UPPER CLASS" label — only in center lane */}
                     {i === Math.floor(N / 2) && (
                       <div style={{ position: "absolute", top: FINISH_WORLD_Y - 38, left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap", fontSize: 11, fontWeight: "bold", color: "white", textShadow: "0 1px 6px rgba(0,0,0,0.5)", zIndex: 6 }}>
                         ☁️ UPPER CLASS ☁️
@@ -255,7 +283,7 @@ export default function RaceTrack() {
                     {/* Finish line */}
                     <div style={{ position: "absolute", top: FINISH_WORLD_Y, left: 0, right: 0, height: 3, background: "#fbbf24", boxShadow: "0 0 10px #fbbf2470", zIndex: 5 }} />
 
-                    {/* Zone separator lines */}
+                    {/* Zone lines */}
                     {zoneWorldYs.map(z => (
                       <div key={z.label} style={{ position: "absolute", top: z.worldY, left: 0, right: 0, height: 1, background: z.color, opacity: 0.25, zIndex: 4 }}>
                         {i === 0 && (
@@ -269,32 +297,12 @@ export default function RaceTrack() {
                     {/* Ladder rails */}
                     <div style={{ position: "absolute", top: FINISH_WORLD_Y, bottom: 0, left: "calc(50% - 13px)", width: 2, background: "rgba(160,120,80,0.45)", zIndex: 3 }} />
                     <div style={{ position: "absolute", top: FINISH_WORLD_Y, bottom: 0, left: "calc(50% + 11px)", width: 2, background: "rgba(160,120,80,0.45)", zIndex: 3 }} />
-
-                    {/* Ladder rungs via repeating gradient */}
+                    {/* Ladder rungs */}
                     <div style={{ position: "absolute", top: FINISH_WORLD_Y, bottom: 0, left: "calc(50% - 11px)", width: 22, backgroundImage: "repeating-linear-gradient(to bottom, transparent 0px, transparent 56px, rgba(160,120,80,0.4) 56px, rgba(160,120,80,0.4) 60px)", zIndex: 3 }} />
 
                     {/* Baby token */}
                     {state && (
-                      <div style={{
-                        position: "absolute",
-                        top: worldY - BABY_SIZE / 2,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: BABY_SIZE,
-                        height: BABY_SIZE,
-                        borderRadius: "50%",
-                        background: "#10101e",
-                        border: `2.5px solid ${cfg.color}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 8,
-                        color: cfg.isAI ? "#fff" : cfg.color,
-                        fontWeight: "bold",
-                        zIndex: 6,
-                        boxShadow: state.luckBoost > 1 ? `0 0 14px ${cfg.color}99` : undefined,
-                        transition: "box-shadow 0.2s",
-                      }}>
+                      <div style={{ position: "absolute", top: worldY - BABY_SIZE / 2, left: "50%", transform: "translateX(-50%)", width: BABY_SIZE, height: BABY_SIZE, borderRadius: "50%", background: "#10101e", border: `2.5px solid ${cfg.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: cfg.isAI ? "#fff" : cfg.color, fontWeight: "bold", zIndex: 6, boxShadow: state.luckBoost > 1 ? `0 0 14px ${cfg.color}99` : undefined, transition: "box-shadow 0.2s" }}>
                         {cfg.name.slice(0, 3)}
                       </div>
                     )}
@@ -303,20 +311,19 @@ export default function RaceTrack() {
               })}
             </div>
 
-            {/* Carrot overlay — not translated, stays pinned to viewport bottom */}
+            {/* Carrot indicators (pinned to bottom of main area) */}
             <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 30 }}>
               {PLAYERS.map((cfg, i) => {
                 const state = playerStates.find(s => s.id === cfg.id);
                 if (!state) return null;
-                const progress = getProgress(state);
-                const worldY   = progressToWorldY(progress);
+                const progress  = getProgress(state);
+                const worldY    = progressToWorldY(progress);
                 const viewportY = worldY - cameraOffset;
 
-                // Only show carrot when baby is below the visible area
-                if (viewportY <= containerH - BABY_SIZE - 16) return null;
+                if (viewportY <= mainContainerH - BABY_SIZE - 16) return null;
 
                 return (
-                  <div key={`carrot-${cfg.id}`} style={{ position: "absolute", bottom: 10, left: `${i * lanePct}%`, width: `${lanePct}%`, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                  <div key={`c-${cfg.id}`} style={{ position: "absolute", bottom: 10, left: `${i * lanePct}%`, width: `${lanePct}%`, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                     <span style={{ fontSize: 14 }}>🥕</span>
                     <span style={{ fontSize: 6, color: cfg.color, opacity: 0.8 }}>
                       {Math.round(progress * 100)}%
@@ -327,7 +334,53 @@ export default function RaceTrack() {
             </div>
           </div>
 
-          {/* Winner flash — centered modal, auto-dismisses */}
+          {/* ── MINIMAP PANEL ─────────────────────────────────────────────── */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: MINI_H, background: "rgba(5,5,16,0.97)", borderTop: "1px solid rgba(255,255,255,0.1)", zIndex: 35, display: "flex", flexDirection: "column" }}>
+            {/* Track area */}
+            <div style={{ flex: 1, display: "flex", paddingTop: 6, paddingBottom: 4, gap: 0 }}>
+              {PLAYERS.map((cfg, i) => {
+                const state    = playerStates.find(s => s.id === cfg.id);
+                const progress = state ? getProgress(state) : 0;
+                // Baby dot: top = (worldY / WORLD_HEIGHT) * MINI_TRACK
+                const dotTop   = Math.round((progressToWorldY(progress) / WORLD_HEIGHT) * MINI_TRACK) - MINI_DOT / 2;
+
+                return (
+                  <div key={cfg.id} style={{ flex: 1, position: "relative", height: MINI_TRACK, borderRight: "1px solid rgba(255,255,255,0.04)", background: MINI_BG }}>
+                    {/* Finish line in minimap */}
+                    <div style={{ position: "absolute", top: mf, left: 0, right: 0, height: 1, background: "#fbbf24", opacity: 0.8, zIndex: 3 }} />
+
+                    {/* Viewport indicator band */}
+                    <div style={{ position: "absolute", top: vBandTop, left: 0, right: 0, height: vBandHeight, background: "rgba(255,255,255,0.07)", borderTop: "1px solid rgba(255,255,255,0.18)", borderBottom: "1px solid rgba(255,255,255,0.18)", zIndex: 2, pointerEvents: "none" }} />
+
+                    {/* Baby dot */}
+                    <div style={{ position: "absolute", top: dotTop, left: "50%", transform: "translateX(-50%)", width: MINI_DOT, height: MINI_DOT, borderRadius: "50%", background: cfg.color, zIndex: 4, boxShadow: state && state.luckBoost > 1 ? `0 0 4px ${cfg.color}` : undefined }} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Name + net worth labels row */}
+            <div style={{ display: "flex", height: MINI_H - MINI_TRACK - 10, alignItems: "center" }}>
+              {PLAYERS.map((cfg) => {
+                const state    = playerStates.find(s => s.id === cfg.id);
+                const progress = state ? getProgress(state) : 0;
+                const nw       = calcNetWorth(progress, cfg.stats.speed);
+
+                return (
+                  <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", overflow: "hidden" }}>
+                    <span style={{ color: cfg.color, fontSize: 7, fontWeight: "bold", lineHeight: 1 }}>
+                      {cfg.name.slice(0, 4)}
+                    </span>
+                    <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 6, lineHeight: 1.2 }}>
+                      {fmtMoney(nw)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Winner flash */}
           {winnerFlash && (() => {
             const cfg   = PLAYERS.find(p => p.id === winnerFlash.id);
             if (!cfg) return null;
@@ -360,7 +413,6 @@ export default function RaceTrack() {
               Race Over
             </div>
 
-            {/* Escaped column */}
             <div style={{ marginBottom: 24, textAlign: "left" }}>
               <div style={{ fontSize: 9, color: "#4ade80", letterSpacing: "0.18em", marginBottom: 10 }}>
                 ✓ ESCAPED TO UPPER CLASS
@@ -372,18 +424,19 @@ export default function RaceTrack() {
               ) : (
                 finishOrder.slice(0, 3).map((id, i) => {
                   const cfg = PLAYERS.find(p => p.id === id)!;
+                  const nw  = calcNetWorth(1, cfg.stats.speed);
                   return (
                     <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 10, background: `${PODIUM_COLORS[i]}14`, border: `1px solid ${PODIUM_COLORS[i]}30`, marginBottom: 4 }}>
                       <span style={{ fontSize: 20 }}>{MEDALS[i]}</span>
                       <div style={{ width: 10, height: 10, borderRadius: "50%", background: cfg.color }} />
                       <span style={{ color: cfg.color, fontWeight: "bold", fontSize: 14 }}>{cfg.name}</span>
+                      <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, marginLeft: "auto" }}>{fmtMoney(nw)}</span>
                     </div>
                   );
                 })
               )}
             </div>
 
-            {/* Stuck column */}
             <div style={{ marginBottom: 28, textAlign: "left" }}>
               <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", marginBottom: 10 }}>
                 ✗ STUCK
@@ -394,11 +447,12 @@ export default function RaceTrack() {
                   .sort((a, b) => getProgress(b) - getProgress(a))
                   .map(s => {
                     const cfg = PLAYERS.find(p => p.id === s.id)!;
+                    const nw  = calcNetWorth(getProgress(s), cfg.stats.speed);
                     return (
                       <div key={s.id} style={{ padding: "4px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
                         <span style={{ color: cfg.color, fontSize: 11 }}>{cfg.name}</span>
                         <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 8, marginLeft: 5 }}>
-                          {classLabel(getProgress(s))}
+                          {classLabel(getProgress(s))} · {fmtMoney(nw)}
                         </span>
                       </div>
                     );

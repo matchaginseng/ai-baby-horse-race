@@ -35,7 +35,7 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
 }
 
-const BASE_SPEED = 0.85;
+const BASE_SPEED = 1.0;
 const TICK_MS = 16;
 
 function seededRand(seed: number) {
@@ -104,7 +104,7 @@ export function tickPlayers(
   elapsed: number,
   finishOrder: string[]
 ): PlayerState[] {
-  const raceProgress = elapsed / (FIELD_HEIGHT / (BASE_SPEED * 2));
+  const raceProgress = elapsed / RACE_DURATION_MS;
 
   return states.map((state) => {
     if (state.finished) return state;
@@ -112,9 +112,9 @@ export function tickPlayers(
     const cfg = configs.find(c => c.id === state.id)!;
     const stats = cfg.stats;
 
-    // Stamina: slow down in last 40% of race
+    // Stamina: slow down in last 40% of race (raceProgress based on wall-clock time)
     const staminaFactor = raceProgress > 0.6
-      ? 0.5 + (stats.stamina / 10) * 0.7
+      ? Math.min(1, 0.5 + (stats.stamina / 10) * 0.7)
       : 1;
 
     // Luck: random speed bursts

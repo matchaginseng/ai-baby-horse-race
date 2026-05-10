@@ -26,7 +26,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "AI",
     color: "#ffffff",
     isAI: true,
-    stats: { speed: 8, agility: 6, stamina: 8, luck: 6, focus: 8 },
+    stats: { speed: 9, agility: 5, stamina: 8, luck: 6, focus: 9 },
   },
   {
     id: "p1",
