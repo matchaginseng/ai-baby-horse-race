@@ -16,12 +16,9 @@ type Phase = "lobby" | "racing" | "finished";
 
 // ── Layout ─────────────────────────────────────────────────────────────────
 const HEADER_H  = 50;
-const MINI_H    = 90;
 const SKY_H     = 110;  // px from top of track to finish line
 const BOTTOM_H  = 28;   // px below start line
 const BABY_SIZE = 34;
-const MINI_TRACK = 50;
-const MINI_DOT   = 8;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
@@ -157,7 +154,7 @@ export default function RaceTrack() {
   useEffect(() => () => { if (animRef.current) cancelAnimationFrame(animRef.current); }, []);
 
   // ── Derived values ─────────────────────────────────────────────────────
-  const trackH       = vpHeight - HEADER_H - MINI_H;  // full track height in px
+  const trackH       = vpHeight - HEADER_H;
   const timeLeftSec  = Math.ceil(timeLeftMs / 1000);
   const yearsElapsed = Math.round((1 - timeLeftMs / RACE_DURATION_MS) * RACE_YEARS);
   const N            = PLAYERS.length;
@@ -180,12 +177,6 @@ export default function RaceTrack() {
     #070710 ${trackH}px
   )`;
 
-  // Minimap gradient
-  const mu = Math.round(z0y / trackH * MINI_TRACK);
-  const mm = Math.round(z1y / trackH * MINI_TRACK);
-  const mw = Math.round(z2y / trackH * MINI_TRACK);
-  const mf = Math.round(SKY_H / trackH * MINI_TRACK);
-  const miniBg = `linear-gradient(to bottom, #87ceeb 0px, #4a90d9 ${mf}px, #0d1a2e ${mu}px, #111122 ${mm}px, #0c0c18 ${mw}px, #070710 ${MINI_TRACK}px)`;
 
   return (
     <div style={{ height: "100vh", overflow: "hidden", background: "#050510", position: "relative", userSelect: "none", fontFamily: "monospace" }}>
@@ -245,8 +236,8 @@ export default function RaceTrack() {
             </div>
           </div>
 
-          {/* Track (fixed height = trackH, no camera) */}
-          <div style={{ position: "absolute", top: HEADER_H, left: 0, right: 0, height: trackH, overflow: "hidden" }}>
+          {/* Track */}
+          <div style={{ position: "absolute", top: HEADER_H, left: 0, right: 0, bottom: 0, overflow: "hidden" }}>
 
             {/* Lanes */}
             <div style={{ position: "absolute", inset: 0, display: "flex" }}>
@@ -355,39 +346,6 @@ export default function RaceTrack() {
               <Cloud left="65%" top={6}  scale={0.8} animDuration="10s" animDir="cloudDrift" />
               <Cloud left="78%" top={22} scale={0.55} animDuration="12s" animDir="cloudDriftSlow" />
               <Cloud left="88%" top={40} scale={0.7} animDuration="8s"  animDir="cloudDrift" />
-            </div>
-          </div>
-
-          {/* ── MINIMAP ────────────────────────────────────────────────────── */}
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: MINI_H, background: "rgba(5,5,16,0.97)", borderTop: "1px solid rgba(255,255,255,0.09)", zIndex: 35, display: "flex", flexDirection: "column", paddingTop: 6 }}>
-            {/* Mini track */}
-            <div style={{ display: "flex", flex: 1, paddingBottom: 2 }}>
-              {PLAYERS.map((cfg, i) => {
-                const state    = playerStates.find(s => s.id === cfg.id);
-                const progress = state ? getProgress(state) : 0;
-                const dotTop   = Math.round((1 - progress) * (MINI_TRACK - MINI_DOT));
-                return (
-                  <div key={cfg.id} style={{ flex: 1, position: "relative", height: MINI_TRACK, borderRight: "1px solid rgba(255,255,255,0.04)", background: miniBg }}>
-                    {/* Finish line in mini */}
-                    <div style={{ position: "absolute", top: mf, left: 0, right: 0, height: 1, background: "#fbbf24", opacity: 0.7, zIndex: 3 }} />
-                    {/* Baby dot */}
-                    <div style={{ position: "absolute", top: dotTop, left: "50%", transform: "translateX(-50%)", width: MINI_DOT, height: MINI_DOT, borderRadius: "50%", background: state?.career ? "rgba(255,255,255,0.2)" : state?.slipping || state?.fallingOff ? "#ef4444" : cfg.color, zIndex: 4 }} />
-                  </div>
-                );
-              })}
-            </div>
-            {/* Labels */}
-            <div style={{ display: "flex", height: MINI_H - MINI_TRACK - 8 }}>
-              {PLAYERS.map((cfg) => {
-                const state    = playerStates.find(s => s.id === cfg.id);
-                const progress = state ? getProgress(state) : 0;
-                return (
-                  <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                    <span style={{ color: cfg.color, fontSize: 7, fontWeight: "bold", lineHeight: 1 }}>{cfg.name.slice(0, 4)}</span>
-                    <span style={{ color: "rgba(255,255,255,0.28)", fontSize: 6, lineHeight: 1.3 }}>{fmtMoney(calcNetWorth(progress, cfg.stats.speed))}</span>
-                  </div>
-                );
-              })}
             </div>
           </div>
 

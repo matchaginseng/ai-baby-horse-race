@@ -59,7 +59,7 @@ const TICK_MS       = 16;
 const SLIP_CHANCE   = 0.0018;
 const SLIP_FRAMES   = 50;
 const SLIP_SPEED    = 2.5;
-const CAREER_CHANCE = 0.00012; // ~1 career change per baby per 139 s; ~3-5 per 60 s race across 14 babies
+const CAREER_CHANCE = 0.0006; // ~1 career change per baby per 28 s; ~8-12 per 60 s race across 14 babies
 const FALL_SPEED    = 200;     // engine px/tick — rapid slide to bottom (~0.3-0.6 s)
 
 function seededRand(seed: number) {
