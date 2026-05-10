@@ -52,6 +52,15 @@ function calcNetWorth(progress: number, speed: number): number {
   return Math.round(progress * progress * 2_000_000 * (0.5 + speed / 20));
 }
 
+function lerpColor(from: string, to: string, t: number): string {
+  const f = parseInt(from.slice(1), 16);
+  const e = parseInt(to.slice(1), 16);
+  const r = Math.round(((f >> 16) & 0xff) * (1 - t) + ((e >> 16) & 0xff) * t);
+  const g = Math.round(((f >>  8) & 0xff) * (1 - t) + ((e >>  8) & 0xff) * t);
+  const b = Math.round(( f        & 0xff) * (1 - t) + ( e        & 0xff) * t);
+  return `#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
+}
+
 function fmtMoney(n: number): string {
   if (n >= 1_000_000) return "$" + (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return "$" + Math.round(n / 1_000) + "k";
@@ -167,7 +176,8 @@ export default function RaceTrack() {
   const z0y = Math.round(zoneYs[0].y);
   const z1y = Math.round(zoneYs[1].y);
   const z2y = Math.round(zoneYs[2].y);
-  // Hell zone below the working class threshold
+  // Hell zone — fades in over the last 15 seconds
+  const hellProgress = Math.max(0, 1 - timeLeftMs / 15_000);
   const hellMid = Math.round(z2y + (trackH - z2y) * 0.45);
   const hellHot = Math.round(z2y + (trackH - z2y) * 0.78);
   const laneBg = `linear-gradient(to bottom,
@@ -177,10 +187,10 @@ export default function RaceTrack() {
     #0d1a2e ${z0y}px,
     #111122 ${z1y}px,
     #0c0c18 ${z2y}px,
-    #2a0404 ${hellMid}px,
-    #7a1200 ${hellHot}px,
-    #c84000 ${trackH - 12}px,
-    #ff6600 ${trackH}px
+    ${lerpColor("#0c0c18", "#2a0404", hellProgress)} ${hellMid}px,
+    ${lerpColor("#0c0c18", "#7a1200", hellProgress)} ${hellHot}px,
+    ${lerpColor("#0c0c18", "#c84000", hellProgress)} ${trackH - 12}px,
+    ${lerpColor("#0c0c18", "#ff6600", hellProgress)} ${trackH}px
   )`;
 
 
