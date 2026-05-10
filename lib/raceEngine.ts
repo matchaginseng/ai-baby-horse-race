@@ -33,10 +33,15 @@ export interface PlayerState {
   luckCooldown: number;
   luckBoost: number;
   trail: { x: number; y: number }[];
+  slipping: boolean;
+  slipFrames: number;
 }
 
 const BASE_SPEED = 1.0;
-const TICK_MS = 16;
+const TICK_MS    = 16;
+const SLIP_CHANCE  = 0.0018; // base slip probability per tick for non-AI babies
+const SLIP_FRAMES  = 50;     // ~800ms of sliding back
+const SLIP_SPEED   = 2.5;    // px/tick backward during a slip
 
 function seededRand(seed: number) {
   let s = seed;
@@ -94,6 +99,8 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
       luckCooldown: 0,
       luckBoost: 1,
       trail: [],
+      slipping: false,
+      slipFrames: 0,
     };
   });
 }
@@ -133,8 +140,28 @@ export function tickPlayers(
 
     const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
 
+    // Slip mechanic — AI never slips; higher luck = less frequent slips
+    let { slipping, slipFrames } = state;
+    if (!cfg.isAI) {
+      if (slipping) {
+        slipFrames = Math.max(0, slipFrames - 1);
+        if (slipFrames === 0) slipping = false;
+      } else {
+        const slipProb = SLIP_CHANCE * (1 - (stats.luck / 10) * 0.6);
+        if (Math.random() < slipProb) {
+          slipping = true;
+          slipFrames = SLIP_FRAMES;
+        }
+      }
+    }
+
     let { segIndex, segProgress, x, y } = state;
-    let remaining = effectiveSpeed;
+
+    if (slipping) {
+      // Slide backward on the ladder
+      y = Math.max(0, y - SLIP_SPEED * (TICK_MS / 16));
+    } else {
+      let remaining = effectiveSpeed;
 
     while (remaining > 0 && segIndex < state.segments.length) {
       const seg = state.segments[segIndex];
@@ -162,8 +189,9 @@ export function tickPlayers(
         x = Math.max(PLAYER_SIZE / 2, Math.min(FIELD_WIDTH - PLAYER_SIZE / 2, x));
       }
     }
+    }
 
-    const finished = y >= FINISH_Y || segIndex >= state.segments.length;
+    const finished = !slipping && (y >= FINISH_Y || segIndex >= state.segments.length);
 
     // Keep a short trail for rendering
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
@@ -179,6 +207,8 @@ export function tickPlayers(
       luckCooldown,
       luckBoost,
       trail,
+      slipping,
+      slipFrames,
     };
   });
 }
