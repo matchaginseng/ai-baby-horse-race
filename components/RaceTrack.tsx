@@ -313,7 +313,7 @@ export default function RaceTrack() {
                                 : cfg.name.slice(0, 3)}
                           </div>
                           {/* Net worth — follows the baby, drops when slipping */}
-                          <span style={{ fontSize: 7, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.45)", marginTop: 2, whiteSpace: "nowrap" }}>
+                          <span style={{ fontSize: 10, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
                             {fmtMoney(nw)}
                           </span>
                           {/* Career label */}

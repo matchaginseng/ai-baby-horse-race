@@ -58,7 +58,7 @@ const TICK_MS       = 16;
 const SLIP_CHANCE   = 0.0018;
 const SLIP_FRAMES   = 50;
 const SLIP_SPEED    = 2.5;
-const CAREER_CHANCE = 0.0006; // ~1 career change per baby per 28 s; ~8-12 per 60 s race across 14 babies
+const CAREER_CHANCE = 0.0004;
 
 function seededRand(seed: number) {
   let s = seed;
