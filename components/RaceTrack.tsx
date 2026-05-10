@@ -9,6 +9,7 @@ import {
   RACE_DURATION_MS,
   RACE_YEARS,
 } from "@/lib/raceEngine";
+// Career type used implicitly via PlayerState
 import { PLAYERS } from "@/lib/players";
 
 type Phase = "lobby" | "racing" | "finished";
@@ -274,34 +275,64 @@ export default function RaceTrack() {
                     <div style={{ position: "absolute", top: SKY_H, bottom: BOTTOM_H, left: "calc(50% - 10px)", width: 20, backgroundImage: "repeating-linear-gradient(to bottom, transparent 0px, transparent 37px, rgba(160,120,80,0.42) 37px, rgba(160,120,80,0.42) 40px)", zIndex: 3 }} />
 
                     {/* Baby token */}
-                    {state && (
-                      <div style={{
-                        position: "absolute",
-                        top: sy - BABY_SIZE / 2,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        width: BABY_SIZE,
-                        height: BABY_SIZE,
-                        borderRadius: "50%",
-                        background: "#10101e",
-                        border: `2.5px solid ${cfg.color}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 8,
-                        color: cfg.isAI ? "#fff" : cfg.color,
-                        fontWeight: "bold",
-                        zIndex: 6,
-                        boxShadow: state.slipping
-                          ? "0 0 10px #ef444490, 0 0 4px #ef4444"
-                          : state.luckBoost > 1
-                            ? `0 0 14px ${cfg.color}99`
-                            : undefined,
-                        transition: "box-shadow 0.15s",
-                      }}>
-                        {state.slipping ? "😱" : cfg.name.slice(0, 3)}
-                      </div>
-                    )}
+                    {state && (() => {
+                      const isFallen  = state.career !== null && !state.fallingOff;
+                      const isFalling = state.fallingOff;
+                      // Fallen babies pin to the bottom of the lane
+                      const tokenTop = isFallen
+                        ? trackH - BOTTOM_H - BABY_SIZE - 2
+                        : sy - BABY_SIZE / 2;
+
+                      return (
+                        <div style={{
+                          position: "absolute",
+                          top: tokenTop,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          zIndex: 6,
+                          opacity: isFallen ? 0.75 : 1,
+                          transition: "opacity 0.4s",
+                        }}>
+                          {/* Circle token */}
+                          <div style={{
+                            width: BABY_SIZE,
+                            height: BABY_SIZE,
+                            borderRadius: "50%",
+                            background: isFallen ? "#1a1a1a" : "#10101e",
+                            border: `2.5px solid ${isFallen ? "rgba(255,255,255,0.2)" : cfg.color}`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: isFallen || isFalling ? 16 : 8,
+                            color: cfg.isAI ? "#fff" : cfg.color,
+                            fontWeight: "bold",
+                            boxShadow: isFalling
+                              ? "0 0 14px #ef444490"
+                              : state.slipping
+                                ? "0 0 10px #ef444490"
+                                : state.luckBoost > 1
+                                  ? `0 0 14px ${cfg.color}99`
+                                  : undefined,
+                            transition: "box-shadow 0.15s",
+                          }}>
+                            {isFallen || isFalling
+                              ? state.career!.emoji
+                              : state.slipping
+                                ? "😱"
+                                : cfg.name.slice(0, 3)}
+                          </div>
+                          {/* Career label (shown when landed) */}
+                          {isFallen && (
+                            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.4)", marginTop: 2, whiteSpace: "nowrap" }}>
+                              {state.career!.name}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -340,7 +371,7 @@ export default function RaceTrack() {
                     {/* Finish line in mini */}
                     <div style={{ position: "absolute", top: mf, left: 0, right: 0, height: 1, background: "#fbbf24", opacity: 0.7, zIndex: 3 }} />
                     {/* Baby dot */}
-                    <div style={{ position: "absolute", top: dotTop, left: "50%", transform: "translateX(-50%)", width: MINI_DOT, height: MINI_DOT, borderRadius: "50%", background: state?.slipping ? "#ef4444" : cfg.color, zIndex: 4 }} />
+                    <div style={{ position: "absolute", top: dotTop, left: "50%", transform: "translateX(-50%)", width: MINI_DOT, height: MINI_DOT, borderRadius: "50%", background: state?.career ? "rgba(255,255,255,0.2)" : state?.slipping || state?.fallingOff ? "#ef4444" : cfg.color, zIndex: 4 }} />
                   </div>
                 );
               })}
@@ -416,9 +447,11 @@ export default function RaceTrack() {
                     const nw  = calcNetWorth(getProgress(s), cfg.stats.speed);
                     return (
                       <div key={s.id} style={{ padding: "4px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                        <span style={{ color: cfg.color, fontSize: 11 }}>{cfg.name}</span>
+                        <span style={{ color: s.career ? "rgba(255,255,255,0.4)" : cfg.color, fontSize: 11 }}>
+                          {s.career ? s.career.emoji + " " : ""}{cfg.name}
+                        </span>
                         <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 8, marginLeft: 5 }}>
-                          {classLabel(getProgress(s))} · {fmtMoney(nw)}
+                          {s.career ? s.career.name : classLabel(getProgress(s))} · {fmtMoney(nw)}
                         </span>
                       </div>
                     );

@@ -20,14 +20,29 @@ export interface Segment {
   dy: number; // pixels to travel vertically
 }
 
+export const CAREER_OPTIONS = [
+  { emoji: "🎨", name: "Artist" },
+  { emoji: "💆", name: "Acupuncturist" },
+  { emoji: "🎵", name: "Musician" },
+  { emoji: "👨‍🍳", name: "Chef" },
+  { emoji: "🧘", name: "Yoga Teacher" },
+  { emoji: "🎭", name: "Actor" },
+  { emoji: "📚", name: "Writer" },
+  { emoji: "🌿", name: "Herbalist" },
+  { emoji: "🏄", name: "Surfer" },
+  { emoji: "🎸", name: "Guitarist" },
+];
+
+export type Career = typeof CAREER_OPTIONS[number];
+
 export interface PlayerState {
   id: string;
   x: number;
   y: number;
   segments: Segment[];
   segIndex: number;
-  segProgress: number; // 0..1 within current segment
-  speed: number;       // effective px/tick
+  segProgress: number;
+  speed: number;
   finished: boolean;
   finishTime: number | null;
   luckCooldown: number;
@@ -35,13 +50,17 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
   slipping: boolean;
   slipFrames: number;
+  career: Career | null;   // null = still on the ladder
+  fallingOff: boolean;     // true while sliding to the bottom after a career change
 }
 
-const BASE_SPEED = 1.0;
-const TICK_MS    = 16;
-const SLIP_CHANCE  = 0.0018; // base slip probability per tick for non-AI babies
-const SLIP_FRAMES  = 50;     // ~800ms of sliding back
-const SLIP_SPEED   = 2.5;    // px/tick backward during a slip
+const BASE_SPEED    = 1.0;
+const TICK_MS       = 16;
+const SLIP_CHANCE   = 0.0018;
+const SLIP_FRAMES   = 50;
+const SLIP_SPEED    = 2.5;
+const CAREER_CHANCE = 0.00012; // ~1 career change per baby per 139 s; ~3-5 per 60 s race across 14 babies
+const FALL_SPEED    = 200;     // engine px/tick — rapid slide to bottom (~0.3-0.6 s)
 
 function seededRand(seed: number) {
   let s = seed;
@@ -101,6 +120,8 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
       trail: [],
       slipping: false,
       slipFrames: 0,
+      career: null,
+      fallingOff: false,
     };
   });
 }
@@ -114,6 +135,9 @@ export function tickPlayers(
   const raceProgress = elapsed / RACE_DURATION_MS;
 
   return states.map((state) => {
+    // Frozen at the bottom after a career change
+    if (state.career !== null && !state.fallingOff) return state;
+
     if (state.finished) return state;
 
     const cfg = configs.find(c => c.id === state.id)!;
@@ -140,9 +164,19 @@ export function tickPlayers(
 
     const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
 
+    // Career-change mechanic — AI immune; higher luck = less likely
+    let { career, fallingOff } = state;
+    if (!cfg.isAI && !fallingOff && career === null) {
+      const careerProb = CAREER_CHANCE * (1 - (stats.luck / 10) * 0.6);
+      if (Math.random() < careerProb) {
+        career = CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)];
+        fallingOff = true;
+      }
+    }
+
     // Slip mechanic — AI never slips; higher luck = less frequent slips
     let { slipping, slipFrames } = state;
-    if (!cfg.isAI) {
+    if (!cfg.isAI && !fallingOff) {
       if (slipping) {
         slipFrames = Math.max(0, slipFrames - 1);
         if (slipFrames === 0) slipping = false;
@@ -157,7 +191,11 @@ export function tickPlayers(
 
     let { segIndex, segProgress, x, y } = state;
 
-    if (slipping) {
+    if (fallingOff) {
+      // Rapid fall to the bottom — dramatically fast
+      y = Math.max(0, y - FALL_SPEED * (TICK_MS / 16));
+      if (y <= 0) fallingOff = false; // landed
+    } else if (slipping) {
       // Slide backward on the ladder
       y = Math.max(0, y - SLIP_SPEED * (TICK_MS / 16));
     } else {
@@ -191,7 +229,7 @@ export function tickPlayers(
     }
     }
 
-    const finished = !slipping && (y >= FINISH_Y || segIndex >= state.segments.length);
+    const finished = !slipping && !fallingOff && career === null && (y >= FINISH_Y || segIndex >= state.segments.length);
 
     // Keep a short trail for rendering
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
@@ -209,6 +247,8 @@ export function tickPlayers(
       trail,
       slipping,
       slipFrames,
+      career,
+      fallingOff,
     };
   });
 }
