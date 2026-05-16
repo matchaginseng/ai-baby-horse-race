@@ -109,28 +109,4 @@ export const PLAYERS: PlayerConfig[] = [
     avatar: "/avatars/titan.png",
     stats: { speed: 7, agility: 2, stamina: 10, luck: 3, focus: 9 },
   },
-  {
-    id: "p11",
-    name: "Pixel",
-    color: COLORS[11],
-    isAI: false,
-    avatar: "/avatars/pixel.png",
-    stats: { speed: 4, agility: 10, stamina: 5, luck: 9, focus: 1 },
-  },
-  {
-    id: "p12",
-    name: "Echo",
-    color: COLORS[12],
-    isAI: false,
-    avatar: "/avatars/echo.png",
-    stats: { speed: 6, agility: 6, stamina: 7, luck: 5, focus: 6 },
-  },
-  {
-    id: "p13",
-    name: "Flux",
-    color: COLORS[13],
-    isAI: false,
-    avatar: "/avatars/flux.png",
-    stats: { speed: 8, agility: 4, stamina: 6, luck: 6, focus: 7 },
-  },
 ];
