@@ -27,7 +27,6 @@ export const PLAYERS: PlayerConfig[] = [
     name: "AI",
     color: "#ffffff",
     isAI: true,
-    avatar: "/avatars/ai.png",
     stats: { speed: 9, agility: 5, stamina: 9, luck: 8, focus: 10 },
   },
   {
@@ -60,7 +59,7 @@ export const PLAYERS: PlayerConfig[] = [
     color: COLORS[3],
     isAI: false,
     avatar: "/avatars/ava.png",
-    stats: { speed: 9, agility: 5, stamina: 9, luck: 6, focus: 4 },
+    stats: { speed: 8, agility: 5, stamina: 8, luck: 6, focus: 4 },
   },
   {
     id: "p5",
@@ -100,7 +99,7 @@ export const PLAYERS: PlayerConfig[] = [
     color: COLORS[9],
     isAI: false,
     avatar: "/avatars/sasha.png",
-    stats: { speed: 9, agility: 5, stamina: 9, luck: 4, focus: 10 },
+    stats: { speed: 8, agility: 5, stamina: 8, luck: 4, focus: 10 },
   },
   {
     id: "p10",
