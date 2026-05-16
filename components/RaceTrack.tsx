@@ -376,7 +376,7 @@ export default function RaceTrack() {
               <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "rgba(0,0,0,0.93)", border: `2px solid ${color}`, borderRadius: 20, padding: "28px 52px", zIndex: 60, textAlign: "center", boxShadow: `0 0 80px ${color}50`, pointerEvents: "none" }}>
                 <div style={{ fontSize: 48, marginBottom: 8 }}>{medal}</div>
                 <div style={{ fontSize: 22, fontWeight: "bold", color, marginBottom: 4 }}>{cfg.name} escapes!</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>#{winnerFlash.place} to reach Upper Class</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,0.4)" }}>#{winnerFlash.place} to escape the permanent underclass</div>
               </div>
             );
           })()}
