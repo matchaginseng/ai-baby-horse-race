@@ -18,7 +18,7 @@ type Phase = "lobby" | "racing" | "finished";
 const HEADER_H  = 50;
 const SKY_H     = 110;  // px from top of track to finish line
 const BOTTOM_H  = 28;   // px below start line
-const BABY_SIZE = 80;
+const BABY_SIZE = 140;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
@@ -177,7 +177,7 @@ export default function RaceTrack() {
   const z1y = Math.round(zoneYs[1].y);
   const z2y = Math.round(zoneYs[2].y);
   // Hell zone — fades in over the last 15 seconds
-  const hellProgress = Math.max(0, 1 - timeLeftMs / 15_000);
+  const hellProgress = Math.max(0, 1 - timeLeftMs / RACE_DURATION_MS);
   const hellMid = Math.round(z2y + (trackH - z2y) * 0.45);
   const hellHot = Math.round(z2y + (trackH - z2y) * 0.78);
   const laneBg = `linear-gradient(to bottom,
@@ -310,7 +310,7 @@ export default function RaceTrack() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: hasCareer ? 32 : 8,
+                            fontSize: 8,
                             color: cfg.isAI ? "#fff" : cfg.color,
                             fontWeight: "bold",
                             overflow: "hidden",
@@ -321,21 +321,19 @@ export default function RaceTrack() {
                                 : undefined,
                             transition: "box-shadow 0.15s",
                           }}>
-                            {hasCareer
-                              ? state.career!.emoji
-                              : state.slipping
-                                ? "😱"
-                                : cfg.avatar
-                                  ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  : cfg.name.slice(0, 3)}
+                            {state.slipping
+                              ? "😱"
+                              : cfg.avatar
+                                ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                : cfg.name.slice(0, 3)}
                           </div>
                           {/* Net worth — follows the baby, drops when slipping */}
-                          <span style={{ fontSize: 14, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
+                          <span style={{ fontSize: 20, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
                             {fmtMoney(nw)}
                           </span>
                           {/* Career label */}
                           {hasCareer && (
-                            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
+                            <span style={{ fontSize: 20, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
                               {state.career!.name}
                             </span>
                           )}
