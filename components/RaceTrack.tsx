@@ -199,25 +199,27 @@ export default function RaceTrack() {
 
       {/* ── LOBBY ─────────────────────────────────────────────────────────── */}
       {phase === "lobby" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 32, padding: "0 16px" }}>
-          <h1 style={{ fontSize: 44, fontWeight: "bold", color: "white", margin: 0 }}>Baby Race</h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, textAlign: "center", maxWidth: 380, margin: 0, lineHeight: 1.6 }}>
-            {N} babies. {RACE_YEARS} years. One ladder out of the underclass.
-            <br />Who escapes before time runs out?
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, maxWidth: 480 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", gap: 40, padding: "40px 24px" }}>
+          <div style={{ textAlign: "center" }}>
+            <h1 style={{ fontSize: 64, fontWeight: "bold", color: "white", margin: 0, letterSpacing: "-0.02em" }}>Baby Race</h1>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 15, textAlign: "center", margin: "12px 0 0", lineHeight: 1.6 }}>
+              {N} babies. {RACE_YEARS} years. One ladder out of the underclass.
+              <br />Who escapes before time runs out?
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16, width: "min(92vw, 780px)" }}>
             {PLAYERS.map(p => (
-              <div key={p.id} style={{ borderRadius: 12, padding: "10px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 48, height: 48, borderRadius: "50%", border: `2px solid ${p.color}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: "bold", color: p.color }}>
+              <div key={p.id} style={{ borderRadius: 16, padding: "18px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 90, height: 90, borderRadius: "50%", border: `2.5px solid ${p.color}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: "bold", color: p.color }}>
                   {p.avatar
                     ? <img src={p.avatar} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : p.name.slice(0, 3)}
                 </div>
-                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{p.name}</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontWeight: "bold" }}>{p.name}</span>
               </div>
             ))}
           </div>
-          <button onClick={startRace} style={{ padding: "16px 52px", background: "white", color: "black", fontWeight: "bold", fontSize: 16, borderRadius: 16, border: "none", cursor: "pointer" }}>
+          <button onClick={startRace} style={{ padding: "18px 64px", background: "white", color: "black", fontWeight: "bold", fontSize: 18, borderRadius: 18, border: "none", cursor: "pointer" }}>
             START RACE
           </button>
         </div>
