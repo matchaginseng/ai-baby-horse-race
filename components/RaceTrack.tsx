@@ -310,7 +310,7 @@ export default function RaceTrack() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: hasCareer ? 16 : 8,
+                            fontSize: hasCareer ? 32 : 8,
                             color: cfg.isAI ? "#fff" : cfg.color,
                             fontWeight: "bold",
                             overflow: "hidden",
