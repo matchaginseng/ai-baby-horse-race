@@ -226,6 +226,10 @@ export function tickPlayers(
     // Keep a short trail for rendering
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
 
+    const career = (finished && !state.finished)
+      ? CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)]
+      : state.career;
+
     return {
       ...state,
       x,
@@ -239,6 +243,7 @@ export function tickPlayers(
       trail,
       slipping,
       slipFrames,
+      career,
     };
   });
 }
