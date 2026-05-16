@@ -324,7 +324,7 @@ export default function RaceTrack() {
                             {state.slipping
                               ? "😱"
                               : cfg.avatar
-                                ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: cfg.isAI ? "sepia(1) hue-rotate(190deg) saturate(3) brightness(0.9)" : undefined }} />
                                 : cfg.name.slice(0, 3)}
                           </div>
                           {/* Net worth — follows the baby, drops when slipping */}
