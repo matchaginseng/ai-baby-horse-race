@@ -21,17 +21,47 @@ export interface Segment {
 }
 
 export const CAREER_OPTIONS = [
+  { emoji: "🏛️", name: "Politician" },
+  { emoji: "💼", name: "CEO" },
+  { emoji: "🎓", name: "Professor" },
+  { emoji: "⚖️", name: "Lawyer" },
+  { emoji: "📊", name: "Consultant" },
+  { emoji: "🏦", name: "Banker" },
+  { emoji: "🎖️", name: "General" },
+  { emoji: "🏥", name: "Surgeon" },
   { emoji: "🎨", name: "Artist" },
-  { emoji: "💆", name: "Acupuncturist" },
   { emoji: "🎵", name: "Musician" },
-  { emoji: "👨‍🍳", name: "Chef" },
-  { emoji: "🧘", name: "Yoga Teacher" },
-  { emoji: "🎭", name: "Actor" },
-  { emoji: "📚", name: "Writer" },
-  { emoji: "🌿", name: "Herbalist" },
   { emoji: "🏄", name: "Surfer" },
-  { emoji: "🎸", name: "Guitarist" },
+  { emoji: "👨‍🍳", name: "Chef" },
 ];
+
+// Parallel to CAREER_OPTIONS — returns a relative weight given a player's stats.
+// Agency=speed, Charisma=agility, Intellect=stamina, Beauty=luck, DarkTriad=focus
+const CAREER_WEIGHTS: ((s: PlayerStats) => number)[] = [
+  s => s.agility * 2 + s.focus * 2,           // Politician
+  s => s.speed * 2 + s.focus * 2,             // CEO
+  s => s.stamina * 3,                          // Professor
+  s => s.stamina * 2 + s.focus,               // Lawyer
+  s => s.agility + s.stamina + s.focus,        // Consultant
+  s => s.speed + s.focus * 2,                  // Banker
+  s => s.focus * 3 + s.speed,                  // General
+  s => s.stamina * 2 + s.agility,              // Surgeon
+  s => s.luck * 2 + 2,                         // Artist
+  s => s.agility + s.luck + 2,                 // Musician
+  s => s.luck * 2 + (10 - s.focus),           // Surfer (low focus helps)
+  s => 4,                                       // Chef (baseline)
+];
+
+function pickCareer(stats: PlayerStats): Career {
+  const weights = CAREER_WEIGHTS.map(w => Math.max(0.5, w(stats)));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < CAREER_OPTIONS.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return CAREER_OPTIONS[i];
+  }
+  return CAREER_OPTIONS[CAREER_OPTIONS.length - 1];
+}
 
 export type Career = typeof CAREER_OPTIONS[number];
 
@@ -165,7 +195,7 @@ export function tickPlayers(
     if (!cfg.isAI && state.career === null) {
       const careerProb = CAREER_CHANCE * (1 - (stats.luck / 10) * 0.6);
       if (Math.random() < careerProb) {
-        const career = CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)];
+        const career = pickCareer(stats);
         return { ...state, career };
       }
     }
@@ -227,7 +257,7 @@ export function tickPlayers(
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
 
     const career = (finished && !state.finished)
-      ? CAREER_OPTIONS[Math.floor(Math.random() * CAREER_OPTIONS.length)]
+      ? pickCareer(stats)
       : state.career;
 
     return {
