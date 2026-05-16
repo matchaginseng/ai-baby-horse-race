@@ -1,9 +1,9 @@
 export interface PlayerStats {
-  speed: number;     // 1-10: base movement velocity
-  agility: number;   // 1-10: turn frequency
-  stamina: number;   // 1-10: resistance to late-race slowdown
-  luck: number;      // 1-10: chance of random speed bursts
-  focus: number;     // 1-10: path straightness (low = wide wandering)
+  speed: number;     // 1-10: base movement velocity           ← Agency
+  agility: number;   // 1-10: turn frequency                   ← Charisma
+  stamina: number;   // 1-10: resistance to late-race slowdown ← Intellect
+  luck: number;      // 1-10: chance of random speed bursts    ← Beauty
+  focus: number;     // 1-10: path straightness (low = wide wandering) ← Dark Triad
 }
 
 export interface PlayerConfig {
@@ -30,73 +30,73 @@ export const PLAYERS: PlayerConfig[] = [
   },
   {
     id: "p1",
-    name: "Blaze",
+    name: "Remy",
     color: COLORS[0],
     isAI: false,
-    stats: { speed: 8, agility: 5, stamina: 6, luck: 4, focus: 7 },
+    stats: { speed: 8, agility: 5, stamina: 6, luck: 7, focus: 9 },
   },
   {
     id: "p2",
-    name: "Nova",
+    name: "Layla",
     color: COLORS[1],
     isAI: false,
-    stats: { speed: 6, agility: 9, stamina: 5, luck: 7, focus: 3 },
+    stats: { speed: 4, agility: 5, stamina: 8, luck: 6, focus: 2 },
   },
   {
     id: "p3",
-    name: "Dash",
+    name: "Kai",
     color: COLORS[2],
     isAI: false,
-    stats: { speed: 7, agility: 4, stamina: 8, luck: 3, focus: 9 },
+    stats: { speed: 8, agility: 4, stamina: 9, luck: 2, focus: 6 },
   },
   {
     id: "p4",
-    name: "Spark",
+    name: "Ava",
     color: COLORS[3],
     isAI: false,
-    stats: { speed: 5, agility: 7, stamina: 7, luck: 8, focus: 5 },
+    stats: { speed: 9, agility: 5, stamina: 9, luck: 6, focus: 4 },
   },
   {
     id: "p5",
-    name: "Rex",
+    name: "Zain",
     color: COLORS[4],
     isAI: false,
-    stats: { speed: 9, agility: 3, stamina: 4, luck: 5, focus: 8 },
+    stats: { speed: 6, agility: 5, stamina: 6, luck: 6, focus: 10 },
   },
   {
     id: "p6",
-    name: "Luna",
+    name: "Mira",
     color: COLORS[5],
     isAI: false,
-    stats: { speed: 4, agility: 8, stamina: 9, luck: 6, focus: 4 },
+    stats: { speed: 4, agility: 5, stamina: 9, luck: 6, focus: 2 },
   },
   {
     id: "p7",
-    name: "Comet",
+    name: "Nila",
     color: COLORS[6],
     isAI: false,
-    stats: { speed: 7, agility: 6, stamina: 5, luck: 9, focus: 6 },
+    stats: { speed: 6, agility: 5, stamina: 6, luck: 6, focus: 2 },
   },
   {
     id: "p8",
-    name: "Bolt",
+    name: "Ren",
     color: COLORS[7],
     isAI: false,
-    stats: { speed: 8, agility: 7, stamina: 3, luck: 7, focus: 5 },
+    stats: { speed: 8, agility: 5, stamina: 9, luck: 8, focus: 2 },
   },
   {
     id: "p9",
-    name: "Storm",
+    name: "Jordan",
     color: COLORS[8],
     isAI: false,
-    stats: { speed: 6, agility: 5, stamina: 8, luck: 4, focus: 7 },
+    stats: { speed: 9, agility: 4, stamina: 6, luck: 2, focus: 8 },
   },
   {
     id: "p10",
-    name: "Ace",
+    name: "Mira",
     color: COLORS[9],
     isAI: false,
-    stats: { speed: 5, agility: 9, stamina: 6, luck: 8, focus: 2 },
+    stats: { speed: 4, agility: 5, stamina: 6, luck: 8, focus: 2 },
   },
   {
     id: "p11",
