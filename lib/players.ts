@@ -24,7 +24,7 @@ const COLORS = [
 export const PLAYERS: PlayerConfig[] = [
   {
     id: "ai",
-    name: "AI",
+    name: "Nila but AI",
     color: "#ffffff",
     isAI: true,
     stats: { speed: 9, agility: 5, stamina: 9, luck: 8, focus: 10 },
