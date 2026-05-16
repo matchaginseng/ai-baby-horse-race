@@ -42,7 +42,7 @@ export default function StatsBar({ configs, states }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <span className="text-white/30 text-xs w-4">{i + 1}</span>
             {config.avatar
-              ? <img src={config.avatar} alt={config.name} className="w-4 h-4 rounded-full flex-shrink-0 object-cover" style={{ border: `1px solid ${config.color}` }} />
+              ? <img src={config.avatar} alt={config.name} className="w-6 h-6 rounded-full flex-shrink-0 object-cover" style={{ border: `1px solid ${config.color}` }} />
               : <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: config.color }} />
             }
             <span

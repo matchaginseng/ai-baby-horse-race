@@ -18,7 +18,7 @@ type Phase = "lobby" | "racing" | "finished";
 const HEADER_H  = 50;
 const SKY_H     = 110;  // px from top of track to finish line
 const BOTTOM_H  = 28;   // px below start line
-const BABY_SIZE = 34;
+const BABY_SIZE = 60;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
@@ -208,7 +208,7 @@ export default function RaceTrack() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, maxWidth: 480 }}>
             {PLAYERS.map(p => (
               <div key={p.id} style={{ borderRadius: 12, padding: "10px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", border: `2px solid ${p.color}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: "bold", color: p.color }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", border: `2px solid ${p.color}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: "bold", color: p.color }}>
                   {p.avatar
                     ? <img src={p.avatar} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : p.name.slice(0, 3)}
