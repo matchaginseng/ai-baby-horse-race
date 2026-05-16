@@ -18,7 +18,7 @@ type Phase = "lobby" | "racing" | "finished";
 const HEADER_H  = 50;
 const SKY_H     = 110;  // px from top of track to finish line
 const BOTTOM_H  = 28;   // px below start line
-const BABY_SIZE = 60;
+const BABY_SIZE = 80;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
@@ -330,12 +330,12 @@ export default function RaceTrack() {
                                   : cfg.name.slice(0, 3)}
                           </div>
                           {/* Net worth — follows the baby, drops when slipping */}
-                          <span style={{ fontSize: 10, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
+                          <span style={{ fontSize: 14, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
                             {fmtMoney(nw)}
                           </span>
                           {/* Career label */}
                           {hasCareer && (
-                            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
+                            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
                               {state.career!.name}
                             </span>
                           )}
