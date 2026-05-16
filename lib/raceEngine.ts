@@ -16,54 +16,9 @@ export const MILESTONES: { y: number; label: string }[] = [
 export type Direction = "down" | "left" | "right";
 
 export interface Segment {
-  dx: number; // pixels to travel horizontally
-  dy: number; // pixels to travel vertically
+  dx: number;
+  dy: number;
 }
-
-export const CAREER_OPTIONS = [
-  { emoji: "🏛️", name: "Politician" },
-  { emoji: "💼", name: "CEO" },
-  { emoji: "🎓", name: "Professor" },
-  { emoji: "⚖️", name: "Lawyer" },
-  { emoji: "📊", name: "Consultant" },
-  { emoji: "🏦", name: "Banker" },
-  { emoji: "🎖️", name: "General" },
-  { emoji: "🏥", name: "Surgeon" },
-  { emoji: "🎨", name: "Artist" },
-  { emoji: "🎵", name: "Musician" },
-  { emoji: "🏄", name: "Surfer" },
-  { emoji: "👨‍🍳", name: "Chef" },
-];
-
-// Parallel to CAREER_OPTIONS — returns a relative weight given a player's stats.
-// Agency=speed, Charisma=agility, Intellect=stamina, Beauty=luck, DarkTriad=focus
-const CAREER_WEIGHTS: ((s: PlayerStats) => number)[] = [
-  s => s.agility * 2 + s.focus * 2,           // Politician
-  s => s.speed * 2 + s.focus * 2,             // CEO
-  s => s.stamina * 3,                          // Professor
-  s => s.stamina * 2 + s.focus,               // Lawyer
-  s => s.agility + s.stamina + s.focus,        // Consultant
-  s => s.speed + s.focus * 2,                  // Banker
-  s => s.focus * 3 + s.speed,                  // General
-  s => s.stamina * 2 + s.agility,              // Surgeon
-  s => s.luck * 2 + 2,                         // Artist
-  s => s.agility + s.luck + 2,                 // Musician
-  s => s.luck * 2 + (10 - s.focus),           // Surfer (low focus helps)
-  s => 4,                                       // Chef (baseline)
-];
-
-function pickCareer(stats: PlayerStats): Career {
-  const weights = CAREER_WEIGHTS.map(w => Math.max(0.5, w(stats)));
-  const total = weights.reduce((a, b) => a + b, 0);
-  let r = Math.random() * total;
-  for (let i = 0; i < CAREER_OPTIONS.length; i++) {
-    r -= weights[i];
-    if (r <= 0) return CAREER_OPTIONS[i];
-  }
-  return CAREER_OPTIONS[CAREER_OPTIONS.length - 1];
-}
-
-export type Career = typeof CAREER_OPTIONS[number];
 
 export interface PlayerState {
   id: string;
@@ -80,15 +35,13 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
   slipping: boolean;
   slipFrames: number;
-  career: Career | null;   // null = still on the ladder; set = frozen in place
 }
 
-const BASE_SPEED    = 1.0;
-const TICK_MS       = 16;
-const SLIP_CHANCE   = 0.0018;
-const SLIP_FRAMES   = 50;
-const SLIP_SPEED    = 2.5;
-const CAREER_CHANCE = 0.0003;
+const BASE_SPEED  = 1.0;
+const TICK_MS     = 16;
+const SLIP_CHANCE = 0.0018;
+const SLIP_FRAMES = 50;
+const SLIP_SPEED  = 2.5;
 
 function seededRand(seed: number) {
   let s = seed;
@@ -102,20 +55,16 @@ function buildSegments(stats: PlayerStats, rand: () => number): Segment[] {
   const segments: Segment[] = [];
   let currentY = 0;
 
-  // Focus controls how much horizontal wandering occurs
   const maxHorizontalStep = ((10 - stats.focus) / 10) * (FIELD_WIDTH * 0.6);
-  // Agility controls segment length (higher agility = more, shorter segments)
   const baseSegLen = ((11 - stats.agility) / 10) * 300 + 80;
 
   while (currentY < FINISH_Y) {
-    // Vertical segment
     const vertLen = baseSegLen * (0.5 + rand() * 1.0);
     segments.push({ dx: 0, dy: vertLen });
     currentY += vertLen;
 
     if (currentY >= FINISH_Y) break;
 
-    // Horizontal segment (wandering)
     if (maxHorizontalStep > 10) {
       const hLen = (rand() * 2 - 1) * maxHorizontalStep;
       segments.push({ dx: hLen, dy: 0 });
@@ -148,7 +97,6 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
       trail: [],
       slipping: false,
       slipFrames: 0,
-      career: null,
     };
   });
 }
@@ -162,20 +110,15 @@ export function tickPlayers(
   const raceProgress = elapsed / RACE_DURATION_MS;
 
   return states.map((state) => {
-    // Frozen in place after a career change
-    if (state.career !== null) return state;
-
     if (state.finished) return state;
 
     const cfg = configs.find(c => c.id === state.id)!;
     const stats = cfg.stats;
 
-    // Stamina: slow down in last 40% of race (raceProgress based on wall-clock time)
     const staminaFactor = raceProgress > 0.6
       ? Math.min(1, 0.5 + (stats.stamina / 10) * 0.7)
       : 1;
 
-    // Luck: random speed bursts
     let { luckCooldown, luckBoost } = state;
     if (luckCooldown > 0) {
       luckCooldown--;
@@ -191,16 +134,6 @@ export function tickPlayers(
 
     const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
 
-    // Career-change mechanic — AI immune; higher luck = less likely
-    if (!cfg.isAI && state.career === null) {
-      const careerProb = CAREER_CHANCE * (1 - (stats.luck / 10) * 0.6);
-      if (Math.random() < careerProb) {
-        const career = pickCareer(stats);
-        return { ...state, career };
-      }
-    }
-
-    // Slip mechanic — AI never slips; higher luck = less frequent slips
     let { slipping, slipFrames } = state;
     if (!cfg.isAI) {
       if (slipping) {
@@ -218,47 +151,37 @@ export function tickPlayers(
     let { segIndex, segProgress, x, y } = state;
 
     if (slipping) {
-      // Slide backward on the ladder
       y = Math.max(0, y - SLIP_SPEED * (TICK_MS / 16));
     } else {
       let remaining = effectiveSpeed;
 
-    while (remaining > 0 && segIndex < state.segments.length) {
-      const seg = state.segments[segIndex];
-      const segLen = Math.sqrt(seg.dx * seg.dx + seg.dy * seg.dy);
-      if (segLen === 0) { segIndex++; continue; }
+      while (remaining > 0 && segIndex < state.segments.length) {
+        const seg = state.segments[segIndex];
+        const segLen = Math.sqrt(seg.dx * seg.dx + seg.dy * seg.dy);
+        if (segLen === 0) { segIndex++; continue; }
 
-      const progressNeeded = remaining / segLen;
-      const newProgress = segProgress + progressNeeded;
+        const progressNeeded = remaining / segLen;
+        const newProgress = segProgress + progressNeeded;
 
-      if (newProgress >= 1) {
-        // Finish this segment
-        x += seg.dx * (1 - segProgress);
-        y += seg.dy * (1 - segProgress);
-        remaining -= segLen * (1 - segProgress);
-        segIndex++;
-        segProgress = 0;
-
-        // Clamp x to field bounds
-        x = Math.max(PLAYER_SIZE / 2, Math.min(FIELD_WIDTH - PLAYER_SIZE / 2, x));
-      } else {
-        x += seg.dx * progressNeeded;
-        y += seg.dy * progressNeeded;
-        segProgress = newProgress;
-        remaining = 0;
-        x = Math.max(PLAYER_SIZE / 2, Math.min(FIELD_WIDTH - PLAYER_SIZE / 2, x));
+        if (newProgress >= 1) {
+          x += seg.dx * (1 - segProgress);
+          y += seg.dy * (1 - segProgress);
+          remaining -= segLen * (1 - segProgress);
+          segIndex++;
+          segProgress = 0;
+          x = Math.max(PLAYER_SIZE / 2, Math.min(FIELD_WIDTH - PLAYER_SIZE / 2, x));
+        } else {
+          x += seg.dx * progressNeeded;
+          y += seg.dy * progressNeeded;
+          segProgress = newProgress;
+          remaining = 0;
+          x = Math.max(PLAYER_SIZE / 2, Math.min(FIELD_WIDTH - PLAYER_SIZE / 2, x));
+        }
       }
-    }
     }
 
     const finished = !slipping && (y >= FINISH_Y || segIndex >= state.segments.length);
-
-    // Keep a short trail for rendering
     const trail = [...state.trail, { x: state.x, y: state.y }].slice(-20);
-
-    const career = (finished && !state.finished)
-      ? pickCareer(stats)
-      : state.career;
 
     return {
       ...state,
@@ -273,7 +196,6 @@ export function tickPlayers(
       trail,
       slipping,
       slipFrames,
-      career,
     };
   });
 }
