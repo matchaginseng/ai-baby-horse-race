@@ -9,7 +9,7 @@ import {
   RACE_DURATION_MS,
   RACE_YEARS,
 } from "@/lib/raceEngine";
-// Career type used implicitly via PlayerState
+
 import { PLAYERS } from "@/lib/players";
 
 type Phase = "lobby" | "racing" | "finished";
@@ -235,8 +235,8 @@ export default function RaceTrack() {
               const placeIdx = finishOrder.indexOf(cfg.id);
               return (
                 <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.05)", gap: 1, overflow: "hidden" }}>
-                  <span style={{ color: state?.career ? "rgba(255,255,255,0.35)" : cfg.color, fontSize: 16, fontWeight: "bold", lineHeight: 1 }}>
-                    {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{state?.career ? state.career.emoji : cfg.name.slice(0, 5)}
+                  <span style={{ color: cfg.color, fontSize: 16, fontWeight: "bold", lineHeight: 1 }}>
+                    {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{cfg.name.slice(0, 5)}
                   </span>
                 </div>
               );
@@ -284,7 +284,6 @@ export default function RaceTrack() {
 
                     {/* Baby token */}
                     {state && (() => {
-                      const hasCareer = state.career !== null;
                       const nw = calcNetWorth(getProgress(state), cfg.stats.speed);
 
                       return (
@@ -297,20 +296,18 @@ export default function RaceTrack() {
                           flexDirection: "column",
                           alignItems: "center",
                           zIndex: 6,
-                          opacity: hasCareer ? 0.7 : 1,
-                          transition: "opacity 0.4s",
                         }}>
                           {/* Circle token */}
                           <div style={{
                             width: BABY_SIZE,
                             height: BABY_SIZE,
                             borderRadius: "50%",
-                            background: hasCareer ? "#1a1a1a" : "#10101e",
-                            border: `2.5px solid ${hasCareer ? "rgba(255,255,255,0.2)" : cfg.color}`,
+                            background: "#10101e",
+                            border: `2.5px solid ${cfg.color}`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: 8,
+                            fontSize: state.slipping ? 60 : 8,
                             color: cfg.isAI ? "#fff" : cfg.color,
                             fontWeight: "bold",
                             overflow: "hidden",
@@ -327,16 +324,10 @@ export default function RaceTrack() {
                                 ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: cfg.isAI ? "sepia(1) hue-rotate(190deg) saturate(3) brightness(0.9)" : undefined }} />
                                 : cfg.name.slice(0, 3)}
                           </div>
-                          {/* Net worth — follows the baby, drops when slipping */}
+                          {/* Net worth */}
                           <span style={{ fontSize: 20, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>
                             {fmtMoney(nw)}
                           </span>
-                          {/* Career label */}
-                          {hasCareer && (
-                            <span style={{ fontSize: 20, color: "rgba(255,255,255,0.5)", whiteSpace: "nowrap" }}>
-                              {state.career!.name}
-                            </span>
-                          )}
                         </div>
                       );
                     })()}
@@ -421,11 +412,11 @@ export default function RaceTrack() {
                     const nw  = calcNetWorth(getProgress(s), cfg.stats.speed);
                     return (
                       <div key={s.id} style={{ padding: "4px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                        <span style={{ color: s.career ? "rgba(255,255,255,0.4)" : cfg.color, fontSize: 11 }}>
-                          {s.career ? s.career.emoji + " " : ""}{cfg.name}
+                        <span style={{ color: cfg.color, fontSize: 11 }}>
+                          {cfg.name}
                         </span>
                         <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 8, marginLeft: 5 }}>
-                          {s.career ? s.career.name : classLabel(getProgress(s))} · {fmtMoney(nw)}
+                          {classLabel(getProgress(s))} · {fmtMoney(nw)}
                         </span>
                       </div>
                     );
