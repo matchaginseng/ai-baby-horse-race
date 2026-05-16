@@ -411,7 +411,7 @@ export default function RaceTrack() {
             </div>
 
             <div style={{ marginBottom: 28, textAlign: "left" }}>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", marginBottom: 10 }}>✗ STUCK</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.18em", marginBottom: 10 }}>✗ CHOSE A DIFFERENT PATH</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                 {playerStates
                   .filter(s => !finishOrder.includes(s.id))
