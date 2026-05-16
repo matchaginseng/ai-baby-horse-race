@@ -103,10 +103,10 @@ export const PLAYERS: PlayerConfig[] = [
   },
   {
     id: "p10",
-    name: "Titan",
+    name: "Chloe",
     color: COLORS[10],
     isAI: false,
-    avatar: "/avatars/titan.png",
+    avatar: "/avatars/chloe.png",
     stats: { speed: 7, agility: 2, stamina: 10, luck: 3, focus: 9 },
   },
 ];
