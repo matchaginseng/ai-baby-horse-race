@@ -11,6 +11,7 @@ export interface PlayerConfig {
   name: string;
   color: string;
   isAI: boolean;
+  avatar?: string;
   stats: PlayerStats;
 }
 
@@ -26,6 +27,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "AI",
     color: "#ffffff",
     isAI: true,
+    avatar: "/avatars/ai.png",
     stats: { speed: 9, agility: 5, stamina: 9, luck: 8, focus: 10 },
   },
   {
@@ -33,6 +35,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Remy",
     color: COLORS[0],
     isAI: false,
+    avatar: "/avatars/remy.png",
     stats: { speed: 8, agility: 5, stamina: 6, luck: 7, focus: 9 },
   },
   {
@@ -40,6 +43,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Layla",
     color: COLORS[1],
     isAI: false,
+    avatar: "/avatars/layla.png",
     stats: { speed: 4, agility: 5, stamina: 8, luck: 6, focus: 2 },
   },
   {
@@ -47,6 +51,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Kai",
     color: COLORS[2],
     isAI: false,
+    avatar: "/avatars/kai.png",
     stats: { speed: 8, agility: 4, stamina: 9, luck: 2, focus: 6 },
   },
   {
@@ -54,6 +59,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Ava",
     color: COLORS[3],
     isAI: false,
+    avatar: "/avatars/ava.png",
     stats: { speed: 9, agility: 5, stamina: 9, luck: 6, focus: 4 },
   },
   {
@@ -61,6 +67,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Zain",
     color: COLORS[4],
     isAI: false,
+    avatar: "/avatars/zain.png",
     stats: { speed: 6, agility: 5, stamina: 6, luck: 6, focus: 10 },
   },
   {
@@ -68,6 +75,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Mira",
     color: COLORS[5],
     isAI: false,
+    avatar: "/avatars/mira.png",
     stats: { speed: 4, agility: 5, stamina: 9, luck: 6, focus: 2 },
   },
   {
@@ -75,6 +83,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Nila",
     color: COLORS[6],
     isAI: false,
+    avatar: "/avatars/nila.png",
     stats: { speed: 6, agility: 5, stamina: 6, luck: 6, focus: 2 },
   },
   {
@@ -82,6 +91,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Ren",
     color: COLORS[7],
     isAI: false,
+    avatar: "/avatars/ren.png",
     stats: { speed: 8, agility: 5, stamina: 9, luck: 8, focus: 2 },
   },
   {
@@ -89,20 +99,23 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Jordan",
     color: COLORS[8],
     isAI: false,
+    avatar: "/avatars/jordan.png",
     stats: { speed: 9, agility: 4, stamina: 6, luck: 2, focus: 8 },
   },
   {
     id: "p10",
-    name: "Mira",
+    name: "Sasha",
     color: COLORS[9],
     isAI: false,
-    stats: { speed: 4, agility: 5, stamina: 6, luck: 8, focus: 2 },
+    avatar: "/avatars/sasha.png",
+    stats: { speed: 9, agility: 5, stamina: 9, luck: 4, focus: 10 },
   },
   {
     id: "p11",
     name: "Titan",
     color: COLORS[10],
     isAI: false,
+    avatar: "/avatars/titan.png",
     stats: { speed: 7, agility: 2, stamina: 10, luck: 3, focus: 9 },
   },
   {
@@ -110,6 +123,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Pixel",
     color: COLORS[11],
     isAI: false,
+    avatar: "/avatars/pixel.png",
     stats: { speed: 4, agility: 10, stamina: 5, luck: 9, focus: 1 },
   },
   {
@@ -117,6 +131,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Echo",
     color: COLORS[12],
     isAI: false,
+    avatar: "/avatars/echo.png",
     stats: { speed: 6, agility: 6, stamina: 7, luck: 5, focus: 6 },
   },
   {
@@ -124,6 +139,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Flux",
     color: COLORS[13],
     isAI: false,
+    avatar: "/avatars/flux.png",
     stats: { speed: 8, agility: 4, stamina: 6, luck: 6, focus: 7 },
   },
 ];
