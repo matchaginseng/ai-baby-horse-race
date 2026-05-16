@@ -64,19 +64,19 @@ export const PLAYERS: PlayerConfig[] = [
   },
   {
     id: "p5",
-    name: "Zain",
+    name: "Rayan",
     color: COLORS[4],
     isAI: false,
-    avatar: "/avatars/zain.png",
-    stats: { speed: 6, agility: 5, stamina: 6, luck: 6, focus: 10 },
+    avatar: "/avatars/rayan.png",
+    stats: { speed: 8, agility: 5, stamina: 6, luck: 8, focus: 10 },
   },
   {
     id: "p6",
-    name: "Mira",
+    name: "Brittany",
     color: COLORS[5],
     isAI: false,
-    avatar: "/avatars/mira.png",
-    stats: { speed: 4, agility: 5, stamina: 9, luck: 6, focus: 2 },
+    avatar: "/avatars/brittany.png",
+    stats: { speed: 9, agility: 4, stamina: 2, luck: 6, focus: 10 },
   },
   {
     id: "p7",
@@ -96,14 +96,6 @@ export const PLAYERS: PlayerConfig[] = [
   },
   {
     id: "p9",
-    name: "Jordan",
-    color: COLORS[8],
-    isAI: false,
-    avatar: "/avatars/jordan.png",
-    stats: { speed: 9, agility: 4, stamina: 6, luck: 2, focus: 8 },
-  },
-  {
-    id: "p10",
     name: "Sasha",
     color: COLORS[9],
     isAI: false,
@@ -111,7 +103,7 @@ export const PLAYERS: PlayerConfig[] = [
     stats: { speed: 9, agility: 5, stamina: 9, luck: 4, focus: 10 },
   },
   {
-    id: "p11",
+    id: "p10",
     name: "Titan",
     color: COLORS[10],
     isAI: false,
@@ -119,7 +111,7 @@ export const PLAYERS: PlayerConfig[] = [
     stats: { speed: 7, agility: 2, stamina: 10, luck: 3, focus: 9 },
   },
   {
-    id: "p12",
+    id: "p11",
     name: "Pixel",
     color: COLORS[11],
     isAI: false,
@@ -127,7 +119,7 @@ export const PLAYERS: PlayerConfig[] = [
     stats: { speed: 4, agility: 10, stamina: 5, luck: 9, focus: 1 },
   },
   {
-    id: "p13",
+    id: "p12",
     name: "Echo",
     color: COLORS[12],
     isAI: false,
@@ -135,7 +127,7 @@ export const PLAYERS: PlayerConfig[] = [
     stats: { speed: 6, agility: 6, stamina: 7, luck: 5, focus: 6 },
   },
   {
-    id: "p14",
+    id: "p13",
     name: "Flux",
     color: COLORS[13],
     isAI: false,
