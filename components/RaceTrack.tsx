@@ -18,7 +18,7 @@ type Phase = "lobby" | "racing" | "finished";
 const HEADER_H  = 50;
 const SKY_H     = 110;  // px from top of track to finish line
 const BOTTOM_H  = 28;   // px below start line
-const BABY_SIZE = 140;
+const BABY_SIZE = 120;
 
 // ── Palette ────────────────────────────────────────────────────────────────
 const ZONES = [
