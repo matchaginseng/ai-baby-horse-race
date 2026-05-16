@@ -233,7 +233,7 @@ export default function RaceTrack() {
               const placeIdx = finishOrder.indexOf(cfg.id);
               return (
                 <div key={cfg.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.05)", gap: 1, overflow: "hidden" }}>
-                  <span style={{ color: state?.career ? "rgba(255,255,255,0.35)" : cfg.color, fontSize: 8, fontWeight: "bold", lineHeight: 1 }}>
+                  <span style={{ color: state?.career ? "rgba(255,255,255,0.35)" : cfg.color, fontSize: 16, fontWeight: "bold", lineHeight: 1 }}>
                     {placeIdx >= 0 && placeIdx < 3 ? MEDALS[placeIdx] + " " : ""}{state?.career ? state.career.emoji : cfg.name.slice(0, 5)}
                   </span>
                 </div>
