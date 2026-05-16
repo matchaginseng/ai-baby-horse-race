@@ -208,8 +208,10 @@ export default function RaceTrack() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, maxWidth: 480 }}>
             {PLAYERS.map(p => (
               <div key={p.id} style={{ borderRadius: 12, padding: "10px 8px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", border: `2px solid ${p.color}`, color: p.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: "bold" }}>
-                  {p.name.slice(0, 3)}
+                <div style={{ width: 34, height: 34, borderRadius: "50%", border: `2px solid ${p.color}`, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: "bold", color: p.color }}>
+                  {p.avatar
+                    ? <img src={p.avatar} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : p.name.slice(0, 3)}
                 </div>
                 <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{p.name}</span>
               </div>
@@ -309,6 +311,7 @@ export default function RaceTrack() {
                             fontSize: hasCareer ? 16 : 8,
                             color: cfg.isAI ? "#fff" : cfg.color,
                             fontWeight: "bold",
+                            overflow: "hidden",
                             boxShadow: state.slipping
                               ? "0 0 10px #ef444490"
                               : state.luckBoost > 1
@@ -320,7 +323,9 @@ export default function RaceTrack() {
                               ? state.career!.emoji
                               : state.slipping
                                 ? "😱"
-                                : cfg.name.slice(0, 3)}
+                                : cfg.avatar
+                                  ? <img src={cfg.avatar} alt={cfg.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  : cfg.name.slice(0, 3)}
                           </div>
                           {/* Net worth — follows the baby, drops when slipping */}
                           <span style={{ fontSize: 10, color: state.slipping ? "#ef4444" : "rgba(255,255,255,0.6)", marginTop: 2, whiteSpace: "nowrap", fontWeight: "bold" }}>

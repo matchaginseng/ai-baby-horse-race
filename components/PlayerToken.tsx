@@ -38,6 +38,15 @@ export default function PlayerToken({ config, state }: Props) {
         />
       )}
 
+      {/* Clip path for avatar image */}
+      {config.avatar && (
+        <defs>
+          <clipPath id={`clip-${config.id}`}>
+            <circle cx={state.x} cy={state.y} r={half} />
+          </clipPath>
+        </defs>
+      )}
+
       {/* Avatar circle */}
       <circle
         cx={state.x}
@@ -48,20 +57,32 @@ export default function PlayerToken({ config, state }: Props) {
         strokeWidth={config.isAI ? 3 : 2}
       />
 
-      {/* Initials / name */}
-      <text
-        x={state.x}
-        y={state.y + 1}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={config.isAI ? 11 : 10}
-        fontWeight={config.isAI ? "bold" : "normal"}
-        fill={config.isAI ? "#fff" : config.color}
-        fontFamily="monospace"
-        pointerEvents="none"
-      >
-        {config.isAI ? "AI" : config.name.slice(0, 3)}
-      </text>
+      {/* Avatar image or initials */}
+      {config.avatar ? (
+        <image
+          href={config.avatar}
+          x={state.x - half}
+          y={state.y - half}
+          width={PLAYER_SIZE}
+          height={PLAYER_SIZE}
+          clipPath={`url(#clip-${config.id})`}
+          preserveAspectRatio="xMidYMid slice"
+        />
+      ) : (
+        <text
+          x={state.x}
+          y={state.y + 1}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={config.isAI ? 11 : 10}
+          fontWeight={config.isAI ? "bold" : "normal"}
+          fill={config.isAI ? "#fff" : config.color}
+          fontFamily="monospace"
+          pointerEvents="none"
+        >
+          {config.isAI ? "AI" : config.name.slice(0, 3)}
+        </text>
+      )}
     </g>
   );
 }
