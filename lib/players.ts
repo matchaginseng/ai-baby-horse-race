@@ -27,6 +27,7 @@ export const PLAYERS: PlayerConfig[] = [
     name: "Nila but AI",
     color: "#ffffff",
     isAI: true,
+    avatar: "/avatars/nila.png",
     stats: { speed: 9, agility: 5, stamina: 9, luck: 8, focus: 10 },
   },
   {
