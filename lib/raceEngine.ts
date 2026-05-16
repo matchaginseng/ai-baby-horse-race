@@ -20,6 +20,10 @@ export interface Segment {
   dy: number;
 }
 
+const CAREER_EMOJIS = ["🏛️","💼","🎓","⚖️","📊","🏦","🎖️","🏥","🎨","🎵","🏄","👨‍🍳"];
+
+export type Career = { emoji: string };
+
 export interface PlayerState {
   id: string;
   x: number;
@@ -35,13 +39,15 @@ export interface PlayerState {
   trail: { x: number; y: number }[];
   slipping: boolean;
   slipFrames: number;
+  career: Career | null;
 }
 
-const BASE_SPEED  = 1.0;
-const TICK_MS     = 16;
-const SLIP_CHANCE = 0.0018;
-const SLIP_FRAMES = 50;
-const SLIP_SPEED  = 2.5;
+const BASE_SPEED    = 1.0;
+const TICK_MS       = 16;
+const SLIP_CHANCE   = 0.0018;
+const SLIP_FRAMES   = 50;
+const SLIP_SPEED    = 2.5;
+const CAREER_CHANCE = 0.0003;
 
 function seededRand(seed: number) {
   let s = seed;
@@ -74,6 +80,10 @@ function buildSegments(stats: PlayerStats, rand: () => number): Segment[] {
   return segments;
 }
 
+function randomCareer(): Career {
+  return { emoji: CAREER_EMOJIS[Math.floor(Math.random() * CAREER_EMOJIS.length)] };
+}
+
 export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
   const spacing = FIELD_WIDTH / (configs.length + 1);
 
@@ -97,6 +107,7 @@ export function initPlayers(configs: PlayerConfig[]): PlayerState[] {
       trail: [],
       slipping: false,
       slipFrames: 0,
+      career: null,
     };
   });
 }
@@ -110,6 +121,7 @@ export function tickPlayers(
   const raceProgress = elapsed / RACE_DURATION_MS;
 
   return states.map((state) => {
+    if (state.career !== null) return state;
     if (state.finished) return state;
 
     const cfg = configs.find(c => c.id === state.id)!;
@@ -133,6 +145,14 @@ export function tickPlayers(
     }
 
     const effectiveSpeed = state.speed * staminaFactor * luckBoost * (TICK_MS / 16);
+
+    // Career-change mechanic — AI immune; higher luck = less likely
+    if (!cfg.isAI) {
+      const careerProb = CAREER_CHANCE * (1 - (stats.luck / 10) * 0.6);
+      if (Math.random() < careerProb) {
+        return { ...state, career: randomCareer() };
+      }
+    }
 
     let { slipping, slipFrames } = state;
     if (!cfg.isAI) {
